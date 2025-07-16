@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMINISTRATOR
+  SUPER_ADMIN
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          UserRole       @default(STUDENT)
+  student       Student?
+  administrator Administrator?
+  Session       Session[]
+  AuditLog      AuditLog[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("users")
+}
+
+model Student {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id])
+  applications   Application[]
+  documents      Document[]
+  qualifications Qualification[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("students")
+}
+
+model Administrator {
+  id           String      @id @default(uuid())
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  permissions  Json
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("administrators")
+}
+
+model Qualification {
+  id        String            @id @default(uuid())
+  studentId String
+  student   Student           @relation(fields: [studentId], references: [id])
+  type      QualificationType
+  subject   String
+  grade     String
+  verified  Boolean           @default(false)
+
+  @@map("qualifications")
+}
+
+enum QualificationType {
+  HIGH_SCHOOL
+  UNDERGRADUATE
+  LANGUAGE_TEST
+  OTHER
+}
+
+model University {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  programs    Program[]
+  departments Department[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("universities")
+}
+
+model Department {
+  id             String          @id @default(uuid())
+  universityId   String
+  university     University      @relation(fields: [universityId], references: [id])
+  name           String
+  code           String
+  administrators Administrator[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("departments")
+}
+
+model Program {
+  id           String               @id @default(uuid())
+  universityId String
+  university   University           @relation(fields: [universityId], references: [id])
+  name         String
+  requirements ProgramRequirement[]
+  applications Application[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@map("programs")
+}
+
+model ProgramRequirement {
+  id          String          @id @default(uuid())
+  programId   String
+  program     Program         @relation(fields: [programId], references: [id])
+  type        RequirementType
+  subject     String?
+  minGrade    String?
+  description String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("program_requirements")
+}
+
+enum RequirementType {
+  GRADE
+  COURSE
+  LANGUAGE
+  INTERVIEW
+  PORTFOLIO
+}
+
+model Application {
+  id          String            @id @default(uuid())
+  studentId   String
+  programId   String
+  student     Student           @relation(fields: [studentId], references: [id])
+  program     Program           @relation(fields: [programId], references: [id])
+  status      ApplicationStatus @default(PENDING)
+  documents   Document[]
+  notes       Note[]
+  submittedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("applications")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  PENDING
+  UNDER_REVIEW
+  CONDITIONAL
+  APPROVED
+  REJECTED
+}
+
+model Document {
+  id            String       @id @default(uuid())
+  studentId     String
+  applicationId String?
+  student       Student      @relation(fields: [studentId], references: [id])
+  application   Application? @relation(fields: [applicationId], references: [id])
+  type          DocumentType
+  url           String
+  verified      Boolean      @default(false)
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("documents")
+}
+
+enum DocumentType {
+  TRANSCRIPT
+  DIPLOMA
+  IDENTIFICATION
+  RECOMMENDATION
+  PROOF_OF_ENGLISH
+}
+
+model Note {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  authorId      String
+  content       String
+  internalOnly  Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("notes")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  isValid      Boolean  @default(true)
+  lastUsedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@index([userId])
+  @@index([refreshToken])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String // e.g., "APPLICATION_SUBMITTED"
+  entityId   String // Related entity ID
+  entityType String // e.g., "Application", "Document"
+  userId     String? // Null for system actions
+  user       User?    @relation(fields: [userId], references: [id])
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json? // Additional context
+  createdAt  DateTime @default(now())
+
+  @@index([entityId, entityType])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  APPLICATION_SUBMITTED
+  DOCUMENT_VERIFIED
+  PAYMENT_PROCESSED
+  STATUS_CHANGED
+  USER_LOGIN
+}

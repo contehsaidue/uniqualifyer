@@ -21,9 +21,16 @@
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+
+    "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"]
+      "@/*": ["app/*"],
+      "@components/*": ["app/components/*"],
+      "@styles/*": ["app/styles/*"],
+      "@utils/*": ["app/utils/*"],
+      "@models/*": ["app/models/*"],
+       "remix-utils/client-only": ["node_modules/remix-utils/client-only"]
     },
 
     // Vite takes care of building everything, not tsc.
