@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'ADMINISTRATOR', 'SUPER_ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('STUDENT', 'DEPARTMENT_ADMINISTRATOR', 'SUPER_ADMIN');
 
 -- CreateEnum
 CREATE TYPE "QualificationType" AS ENUM ('HIGH_SCHOOL', 'UNDERGRADUATE', 'LANGUAGE_TEST', 'OTHER');
@@ -30,6 +30,17 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
+CREATE TABLE "super_admins" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "permissions" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "super_admins_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "students" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -40,7 +51,7 @@ CREATE TABLE "students" (
 );
 
 -- CreateTable
-CREATE TABLE "administrators" (
+CREATE TABLE "department_administrators" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "departmentId" TEXT,
@@ -48,7 +59,7 @@ CREATE TABLE "administrators" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "administrators_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "department_administrators_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -187,10 +198,13 @@ CREATE TABLE "AuditLog" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "super_admins_userId_key" ON "super_admins"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "students_userId_key" ON "students"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "administrators_userId_key" ON "administrators"("userId");
+CREATE UNIQUE INDEX "department_administrators_userId_key" ON "department_administrators"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "universities_slug_key" ON "universities"("slug");
@@ -214,13 +228,16 @@ CREATE INDEX "AuditLog_userId_idx" ON "AuditLog"("userId");
 CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
 
 -- AddForeignKey
+ALTER TABLE "super_admins" ADD CONSTRAINT "super_admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "students" ADD CONSTRAINT "students_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "administrators" ADD CONSTRAINT "administrators_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "department_administrators" ADD CONSTRAINT "department_administrators_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "administrators" ADD CONSTRAINT "administrators_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "department_administrators" ADD CONSTRAINT "department_administrators_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "qualifications" ADD CONSTRAINT "qualifications_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

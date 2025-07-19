@@ -10,24 +10,36 @@ datasource db {
 
 enum UserRole {
   STUDENT
-  ADMINISTRATOR
+  DEPARTMENT_ADMINISTRATOR
   SUPER_ADMIN
 }
 
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  password      String
-  role          UserRole       @default(STUDENT)
-  student       Student?
-  administrator Administrator?
-  Session       Session[]
-  AuditLog      AuditLog[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                       String                   @id @default(uuid())
+  name                     String
+  email                    String                   @unique
+  password                 String
+  role                     UserRole                 @default(STUDENT)
+  student                  Student?
+  super_admin              SuperAdmin?
+  department_administrator DepartmentAdministrator?
+  Session                  Session[]
+  AuditLog                 AuditLog[]
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
 
   @@map("users")
+}
+
+model SuperAdmin {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  permissions Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("super_admins")
 }
 
 model Student {
@@ -43,7 +55,7 @@ model Student {
   @@map("students")
 }
 
-model Administrator {
+model DepartmentAdministrator {
   id           String      @id @default(uuid())
   userId       String      @unique
   user         User        @relation(fields: [userId], references: [id])
@@ -53,7 +65,7 @@ model Administrator {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  @@map("administrators")
+  @@map("department_administrators")
 }
 
 model Qualification {
@@ -88,14 +100,14 @@ model University {
 }
 
 model Department {
-  id             String          @id @default(uuid())
+  id             String                    @id @default(uuid())
   universityId   String
-  university     University      @relation(fields: [universityId], references: [id])
+  university     University                @relation(fields: [universityId], references: [id])
   name           String
   code           String
-  administrators Administrator[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  administrators DepartmentAdministrator[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 
   @@map("departments")
 }

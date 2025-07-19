@@ -1,31 +1,85 @@
-import { User, Mail, Lock, Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import {
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  ChevronLeft,
+} from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { registerUser } from "@/services/auth.service";
+import { commitSession, getSession } from "@/utils/session.server";
+import { Link } from "@remix-run/react";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+
+  if (session.has("accessToken")) {
+    return redirect("/dashboard/index");
+  }
+
+  return null;
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  const formData = await request.formData();
+
+  // Validate and type form inputs
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const terms = formData.get("terms");
+
+  if (
+    typeof name !== "string" ||
+    typeof email !== "string" ||
+    typeof password !== "string" ||
+    terms !== "on"
+  ) {
+    return new Response("Invalid form data", { status: 400 });
+  }
+
+  try {
+    const response = await registerUser(name, email, password);
+    session.set("accessToken", response.tokens.accessToken);
+    session.set("refreshToken", response.tokens.refreshToken);
+    session.set("user", response.user);
+
+    return redirect("/dashboard/index", {
+      headers: {
+        "Set-Cookie": await commitSession(session, {
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+        }),
+      },
+    });
+  } catch (error) {
+    let errorMessage = "Registration failed";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    return new Response(errorMessage, {
+      status: 400,
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+}
 
 export default function Register() {
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Handle registration logic here
-    }, 1500);
-  };
+  const isLoading = navigation.state === "submitting";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50 p-4">
@@ -36,8 +90,8 @@ export default function Register() {
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100 relative"
       >
         {/* Back button */}
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="absolute top-4 left-4 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -48,13 +102,20 @@ export default function Register() {
           <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
             <User className="h-8 w-8 text-indigo-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join Uni-Qualify to discover your perfect university match</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Create Account
+          </h1>
+          <p className="text-gray-600">
+            Join UniQualifyer to discover your perfect university match
+          </p>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <Form method="post" className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Full Name
             </label>
             <div className="relative">
@@ -64,8 +125,7 @@ export default function Register() {
               <input
                 type="text"
                 id="name"
-                value={formData.name}
-                onChange={handleChange}
+                name="name"
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="John Doe"
                 required
@@ -74,7 +134,10 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email Address
             </label>
             <div className="relative">
@@ -84,8 +147,7 @@ export default function Register() {
               <input
                 type="email"
                 id="email"
-                value={formData.email}
-                onChange={handleChange}
+                name="email"
                 className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="you@example.com"
                 required
@@ -94,7 +156,10 @@ export default function Register() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <div className="relative">
@@ -104,8 +169,7 @@ export default function Register() {
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                value={formData.password}
-                onChange={handleChange}
+                name="password"
                 className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="••••••••"
                 required
@@ -137,9 +201,30 @@ export default function Register() {
               required
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-              I agree to the <Link to="/terms" className="text-indigo-600 hover:text-indigo-500">Terms of Service</Link> and <Link to="/privacy" className="text-indigo-600 hover:text-indigo-500">Privacy Policy</Link>
+              I agree to the{" "}
+              <Link
+                to="/terms"
+                className="text-indigo-600 hover:text-indigo-500"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/privacy"
+                className="text-indigo-600 hover:text-indigo-500"
+              >
+                Privacy Policy
+              </Link>
             </label>
           </div>
+
+          {actionData && (
+            <div className="text-red-500 text-sm text-center">
+              {typeof actionData === "string"
+                ? actionData
+                : "Registration failed"}
+            </div>
+          )}
 
           <div>
             <button
@@ -153,16 +238,19 @@ export default function Register() {
                   Creating account...
                 </>
               ) : (
-                'Register'
+                "Register"
               )}
             </button>
           </div>
-        </form>
+        </Form>
 
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-600">
-            Already have an account?{' '}
-            <Link to="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Already have an account?{" "}
+            <Link
+              to="/auth/login"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
               Sign in
             </Link>
           </p>

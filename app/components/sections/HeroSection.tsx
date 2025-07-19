@@ -1,6 +1,6 @@
-import { GraduationCap, Search, User, LogIn, ChevronRight } from 'lucide-react';
-import { Link } from '@remix-run/react';
-import { motion } from 'framer-motion';
+import { GraduationCap, Search, User, LogIn, ChevronRight } from "lucide-react";
+import { Link } from "@remix-run/react";
+import { motion } from "framer-motion";
 
 export function HeroSection() {
   return (
@@ -9,9 +9,11 @@ export function HeroSection() {
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/10 via-purple-500/5 to-transparent" />
         <div className="absolute right-0 top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-3xl">
-          <div className="aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#6366f1] to-[#a855f7] opacity-20"
+          <div
+            className="aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#6366f1] to-[#a855f7] opacity-20"
             style={{
-              clipPath: 'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)'
+              clipPath:
+                "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
             }}
           />
         </div>
@@ -20,15 +22,15 @@ export function HeroSection() {
       {/* Floating auth buttons */}
       <div className="absolute right-6 top-6 z-50">
         <div className="flex space-x-3 backdrop-blur-sm bg-white/30 rounded-full p-1 shadow-surface">
-          <Link 
-            to="/auth/login" 
+          <Link
+            to="/auth/login"
             className="flex items-center px-4 py-2 text-sm font-medium rounded-full hover:bg-white/20 transition-all"
           >
             <LogIn className="w-4 h-4 mr-2" />
             Sign in
           </Link>
-          <Link 
-            to="/auth/register" 
+          <Link
+            to="/auth/register"
             className="flex items-center px-4 py-2 text-sm font-medium rounded-full bg-white text-indigo-600 shadow-sm hover:bg-white/90 transition-all"
           >
             <User className="w-4 h-4 mr-2" />
@@ -38,7 +40,7 @@ export function HeroSection() {
       </div>
 
       <div className="mx-auto max-w-7xl px-6 py-32 sm:py-48 lg:py-56">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -54,7 +56,7 @@ export function HeroSection() {
             </motion.div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                Uni-Qualifyer
+                UniQualifyer
               </span>
             </h1>
           </div>
@@ -66,12 +68,17 @@ export function HeroSection() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 max-w-4xl mx-auto"
           >
-            The <span className="relative whitespace-nowrap">
+            The{" "}
+            <span className="relative whitespace-nowrap">
               <span className="relative">
-                <span className="absolute -inset-1 block -skew-y-3 bg-indigo-100/50" aria-hidden="true"></span>
+                <span
+                  className="absolute -inset-1 block -skew-y-3 bg-indigo-100/50"
+                  aria-hidden="true"
+                ></span>
                 <span className="relative">future</span>
               </span>
-            </span> of university matching
+            </span>{" "}
+            of university matching
           </motion.h2>
 
           {/* Interactive CTA */}
@@ -94,9 +101,9 @@ export function HeroSection() {
           {/* Floating stats grid */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             {[
-              { value: '6,400+', label: 'Programs' },
-              { value: '93%', label: 'Match accuracy' },
-              { value: '347', label: 'Universities' }
+              { value: "6,400+", label: "Programs" },
+              { value: "93%", label: "Match accuracy" },
+              { value: "347", label: "Universities" },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -115,8 +122,9 @@ export function HeroSection() {
 
       {/* Animated cursor follower */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl -translate-x-1/2 -translate-y-1/2"
-          style={{ left: '50%', top: '50%' }}
+        <div
+          className="absolute h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl -translate-x-1/2 -translate-y-1/2"
+          style={{ left: "50%", top: "50%" }}
         />
       </div>
     </section>

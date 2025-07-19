@@ -1,5 +1,23 @@
 import { PrismaClient } from '@prisma/client';
+import { USER_ROLES } from '@/utils/constants';
 import { hash } from 'bcryptjs';
+
+// Define missing enums that are referenced in the script
+enum QualificationType {
+  HIGH_SCHOOL = 'HIGH_SCHOOL',
+  LANGUAGE_TEST = 'LANGUAGE_TEST',
+}
+
+enum DocumentType {
+  TRANSCRIPT = 'TRANSCRIPT',
+  IDENTIFICATION = 'IDENTIFICATION',
+}
+
+enum ApplicationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
 
 async function seedDatabase() {
   const prisma = new PrismaClient();
@@ -89,30 +107,54 @@ async function seedDatabase() {
     });
     console.log(`Created ${requirements.count} program requirements`);
 
-    // 5. Create Users (Students and Admins)
+    // 5. Create Users (Students, Department Admins and Super Admins)
     const hashedPassword = await hash('1234', 12);
     
+    // Create Super Admin
     const adminUser = await prisma.user.create({
       data: {
-        email: 'admin@university.edu',
+        email: 'super@uniqualifyer.dev',
         name: 'Admin User', 
         password: hashedPassword,
-        role: 'ADMINISTRATOR',
-        administrator: {
+        role: 'SUPER_ADMIN',
+        super_admin: {
+          create: {
+            permissions: {
+              create: {
+                canManageSystem: true,
+                canManageUsers: true,
+              }
+            }
+          },
+        },
+      },
+    });
+    console.log('Created super admin user:', adminUser.email);
+
+    // Create Department Admin
+    const departmentUser = await prisma.user.create({
+      data: {
+        email: 'deptadmin@uniqualifyer.dev',
+        name: 'Department Admin', 
+        password: hashedPassword,
+        role: 'DEPARTMENT_ADMINISTRATOR',
+        department_administrator: {
           create: {
             departmentId: csDepartment.id,
             permissions: {
               create: {
                 canVerifyDocuments: true,
                 canApproveApplications: true,
-              },
-            },
+                canManageDepartment: true,
+              }
+            }
           },
         },
       },
     });
-    console.log('Created admin user:', adminUser.email);
+    console.log('Created department admin user:', departmentUser.email);
 
+    // Create Student
     const studentUser = await prisma.user.create({
       data: {
         email: 'student@example.com',
@@ -124,13 +166,13 @@ async function seedDatabase() {
             qualifications: {
               create: [
                 {
-                  type: 'HIGH_SCHOOL',
+                  type: QualificationType.HIGH_SCHOOL,
                   subject: 'Mathematics',
                   grade: 'A',
                   verified: true,
                 },
                 {
-                  type: 'LANGUAGE_TEST',
+                  type: QualificationType.LANGUAGE_TEST,
                   subject: 'English',
                   grade: 'IELTS 7.5',
                   verified: true,
@@ -147,35 +189,48 @@ async function seedDatabase() {
       where: { userId: studentUser.id }
     });
 
-    // 6. Create Applications
+    // 6. Create Documents
+    const documents = await prisma.document.createMany({
+      data: [
+        {
+          studentId: student.id,
+          type: DocumentType.TRANSCRIPT,
+          url: 'https://example.com/transcript.pdf',
+          verified: false,
+        },
+        {
+          studentId: student.id,
+          type: DocumentType.IDENTIFICATION,
+          url: 'https://example.com/id.pdf',
+          verified: true,
+          verifiedBy: adminUser.id,
+          verifiedAt: new Date(),
+        },
+      ],
+      skipDuplicates: true,
+    });
+    console.log(`Created ${documents.count} documents`);
+
+    // Get the first document ID for the application
+    const firstDocument = await prisma.document.findFirstOrThrow({ 
+      where: { studentId: student.id } 
+    });
+
+    // 7. Create Application
     const application = await prisma.application.create({
       data: {
         studentId: student.id,
         programId: csProgram.id,
-        status: 'PENDING',
+        status: ApplicationStatus.PENDING,
+        submittedAt: new Date(),
         documents: {
-          create: [
-            {
-              studentId: student.id,
-              type: 'TRANSCRIPT',
-              url: 'https://example.com/transcript.pdf',
-              verified: false,
-            },
-            {
-              studentId: student.id,
-              type: 'IDENTIFICATION',
-              url: 'https://example.com/id.pdf',
-              verified: true,
-              verifiedBy: adminUser.id,
-              verifiedAt: new Date(),
-            },
-          ],
-        },
+          connect: [{ id: firstDocument.id }]
+        }
       },
     });
     console.log('Created application:', application.id);
 
-    // 7. Create Notes
+    // 8. Create Notes
     const note = await prisma.note.create({
       data: {
         applicationId: application.id,
@@ -185,6 +240,23 @@ async function seedDatabase() {
       },
     });
     console.log('Created note:', note.id);
+
+    // 9. Create Audit Logs
+    const auditLog = await prisma.auditLog.create({
+      data: {
+        action: 'APPLICATION_SUBMITTED',
+        entityId: application.id,
+        entityType: 'Application',
+        userId: studentUser.id,
+        ipAddress: '127.0.0.1',
+        userAgent: 'Seeder Script',
+        metadata: {
+          programId: csProgram.id,
+          status: ApplicationStatus.PENDING
+        }
+      }
+    });
+    console.log('Created audit log:', auditLog.id);
 
     console.log('✅ Database seeded successfully!');
   } catch (error) {

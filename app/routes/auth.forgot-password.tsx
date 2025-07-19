@@ -1,10 +1,10 @@
-import { Mail, ChevronLeft, Loader2, CheckCircle } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Mail, ChevronLeft, Loader2, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -27,8 +27,8 @@ export default function ForgotPassword() {
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100 relative"
       >
         {/* Back button */}
-        <Link 
-          to="/login" 
+        <Link
+          to="/auth/login"
           className="absolute top-4 left-4 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -40,19 +40,22 @@ export default function ForgotPassword() {
             <Mail className="h-8 w-8 text-indigo-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isSubmitted ? 'Check Your Email' : 'Forgot Password'}
+            {isSubmitted ? "Check Your Email" : "Forgot Password"}
           </h1>
           <p className="text-gray-600">
-            {isSubmitted 
+            {isSubmitted
               ? `We've sent a password reset link to ${email}`
-              : 'Enter your email to receive a password reset link'}
+              : "Enter your email to receive a password reset link"}
           </p>
         </div>
 
         {!isSubmitted ? (
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email address
               </label>
               <div className="relative">
@@ -83,7 +86,7 @@ export default function ForgotPassword() {
                     Sending...
                   </>
                 ) : (
-                  'Send Reset Link'
+                  "Send Reset Link"
                 )}
               </button>
             </div>
@@ -94,7 +97,8 @@ export default function ForgotPassword() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <p className="text-gray-600">
-              If you don't see the email, check your spam folder or try resending the link.
+              If you don't see the email, check your spam folder or try
+              resending the link.
             </p>
             <button
               onClick={() => {
@@ -110,8 +114,11 @@ export default function ForgotPassword() {
 
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-600">
-            Remember your password?{' '}
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Remember your password?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
               Sign in
             </Link>
           </p>

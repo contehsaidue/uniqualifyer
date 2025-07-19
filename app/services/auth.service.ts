@@ -23,20 +23,47 @@ interface AuthResponse {
  * Register a new user
  */
 
-
-export const registerUser = async (name: string, email: string, password: string) => {
-  const hashedPassword = await bcrypt.hash(password, 12)
+export const registerUser = async (
+  name: string, 
+  email: string, 
+  password: string
+): Promise<AuthResponse> => {
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(password, 12);
   
+  // Create the user in database
   const user = await prisma.user.create({
     data: {
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      
     }
-  })
+  });
 
-  return user
-}
+  const { accessToken, refreshToken } = await generateTokens(user.id, user.role);
+
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) 
+    }
+  });
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role
+    },
+    tokens: { 
+      accessToken, 
+      refreshToken 
+    }
+  };
+};
 
 /**
  * Login user with email and password

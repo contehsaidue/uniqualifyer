@@ -1,69 +1,62 @@
-
-import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Form, useActionData, useNavigation } from '@remix-run/react';
-import { Lock, Mail, Eye, EyeOff, Loader2, ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { loginUser } from '@/services/auth.service';
-import { commitSession, getSession } from '@/utils/session.server';
-import { toast } from 'react-hot-toast';
-import { Link } from '@remix-run/react';
+import {
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
+import { Lock, Mail, Eye, EyeOff, Loader2, ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { loginUser } from "@/services/auth.service";
+import { commitSession, getSession } from "@/utils/session.server";
+import { Link } from "@remix-run/react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'));
-  
-  if (session.has('accessToken')) {
-    return redirect('/dashboard/index');
+  const session = await getSession(request.headers.get("Cookie"));
+
+  if (session.has("accessToken")) {
+    return redirect("/dashboard/index");
   }
 
   return null;
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await getSession(request.headers.get("Cookie"));
   const formData = await request.formData();
-  
+
   // Validate and type form inputs
-  const email = formData.get('email');
-  const password = formData.get('password');
-  
-  if (typeof email !== 'string' || typeof password !== 'string') {
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  if (typeof email !== "string" || typeof password !== "string") {
     return new Response("Invalid form data", { status: 400 });
   }
 
   try {
-   const response = await loginUser(email, password);
-    
-    // Store tokens in session
-    session.set('accessToken', response.tokens.accessToken);
-    session.set('refreshToken', response.tokens.refreshToken);
-    session.set('user', response.user);
+    const response = await loginUser(email, password);
+    session.set("accessToken", response.tokens.accessToken);
+    session.set("refreshToken", response.tokens.refreshToken);
+    session.set("user", response.user);
 
-    // Determine redirect path based on role
-    let redirectTo = '/dashboard/index';
-  
-    // Secure redirect with session commit
+    let redirectTo = "/dashboard/index";
+
     return redirect(redirectTo, {
       headers: {
-        'Set-Cookie': await commitSession(session, {
-          // Refresh expiration on each login
-          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+        "Set-Cookie": await commitSession(session, {
+          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         }),
       },
     });
-
   } catch (error) {
-    // Handle different error types
-    let errorMessage = 'Login failed';
+    let errorMessage = "Login failed";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
-
-    // Return to login page with error (without committing session)
-    return new Response(errorMessage, { 
+    return new Response(errorMessage, {
       status: 401,
       headers: {
-        'Set-Cookie': await commitSession(session), 
+        "Set-Cookie": await commitSession(session),
       },
     });
   }
@@ -73,7 +66,7 @@ export default function Login() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const [showPassword, setShowPassword] = useState(false);
-  const isLoading = navigation.state === 'submitting';
+  const isLoading = navigation.state === "submitting";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50 p-4">
@@ -84,8 +77,8 @@ export default function Login() {
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-100 relative"
       >
         {/* Back button */}
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="absolute top-4 left-4 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -96,13 +89,18 @@ export default function Login() {
           <div className="mx-auto w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-8 w-8 text-indigo-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
-          <p className="text-gray-600">Sign in to your Uni-Qualify account</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back
+          </h1>
+          <p className="text-gray-600">Sign in to your UniQualifyer account</p>
         </div>
 
         <Form method="post" className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email address
             </label>
             <div className="relative">
@@ -122,11 +120,14 @@ export default function Login() {
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
-              <Link 
-                to="/auth/forgot-password" 
+              <Link
+                to="/auth/forgot-password"
                 className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
               >
                 Forgot password?
@@ -177,7 +178,7 @@ export default function Login() {
                   Signing in...
                 </>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </div>
@@ -197,7 +198,7 @@ export default function Login() {
 
           <div className="mt-4">
             <Link
-              to="/register"
+              to="/auth/register"
               className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
             >
               Create new account
