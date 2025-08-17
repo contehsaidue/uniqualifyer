@@ -1,7 +1,7 @@
 import { StatCard } from "@/components/shared/StatCard";
 import { BookOpen, BarChart, FileText, Bell } from "lucide-react";
 
-export default function StudentDashboard() {
+export default function ApplicantDashboard() {
   // Mock data
   const studentData = {
     name: "Alex Johnson",

@@ -25,10 +25,8 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["app/*"],
-      "@components/*": ["app/components/*"],
-      "@styles/*": ["app/styles/*"],
-      "@utils/*": ["app/utils/*"],
+       "~/*": ["./app/*"],
+      "@/*": ["./app/*"], 
       "@models/*": ["app/models/*"],
        "remix-utils/client-only": ["node_modules/remix-utils/client-only"]
     },

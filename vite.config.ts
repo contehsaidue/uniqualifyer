@@ -8,8 +8,9 @@ export default defineConfig({
   },
   plugins: [remix()],
     resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './app'), 
+         alias: {
+      '~': path.resolve(__dirname, './app'),
+      '@': path.resolve(__dirname, './app') 
     },
   },
   css: {

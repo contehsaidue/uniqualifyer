@@ -1,14 +1,59 @@
 import { GraduationCap, Search, User, LogIn, ChevronRight } from "lucide-react";
 import { Link } from "@remix-run/react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
+
+// Array of background images with different overlay colors
+const backgroundImages = [
+  {
+    url: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3000&q=80",
+    overlay: "bg-indigo-600/40",
+  },
+  {
+    url: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2942&q=80",
+    overlay: "bg-purple-600/40",
+  },
+  {
+    url: "https://images.unsplash.com/photo-1541178735493-479c1a27ed24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2942&q=80",
+    overlay: "bg-blue-600/40",
+  },
+];
 
 export function HeroSection() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { scrollY } = useScroll();
+  const yBg = useTransform(scrollY, [0, 300], [0, 100]);
+
+  // Auto-rotate background images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <section className="relative isolate px-6 lg:px-8 min-h-[90vh] flex items-center">
-      {/* Next-gen background */}
+    <section className="relative isolate px-6 lg:px-8 min-h-[90vh] flex items-center overflow-hidden">
+      {/* Carousel background with parallax */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
+        {backgroundImages.map((image, index) => (
+          <motion.div
+            key={index}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+              index === currentImageIndex ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              backgroundImage: `url(${image.url})`,
+              y: yBg,
+            }}
+          >
+            <div className={`absolute inset-0 ${image.overlay}`} />
+          </motion.div>
+        ))}
+
+        {/* Gradient effects */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/10 via-purple-500/5 to-transparent" />
-        <div className="absolute right-0 top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-3xl">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 transform-gpu blur-3xl">
           <div
             className="aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#6366f1] to-[#a855f7] opacity-20"
             style={{
@@ -52,12 +97,10 @@ export function HeroSection() {
               animate={{ rotate: [-5, 5, -5] }}
               transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
             >
-              <GraduationCap className="w-14 h-14 text-indigo-500 mb-4" />
+              <GraduationCap className="w-14 h-14 text-gray-100 mb-4" />
             </motion.div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                UniQualifyer
-              </span>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-100">
+              UniQualifyer
             </h1>
           </div>
 
@@ -66,7 +109,7 @@ export function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 max-w-4xl mx-auto"
+            className="text-3xl md:text-5xl font-semibold text-gray-100 mb-6 max-w-4xl mx-auto"
           >
             The{" "}
             <span className="relative whitespace-nowrap">
@@ -75,7 +118,7 @@ export function HeroSection() {
                   className="absolute -inset-1 block -skew-y-3 bg-indigo-100/50"
                   aria-hidden="true"
                 ></span>
-                <span className="relative">future</span>
+                <span className="relative text-gray-900">future</span>
               </span>
             </span>{" "}
             of university matching

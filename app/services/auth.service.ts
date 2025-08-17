@@ -8,6 +8,8 @@ interface UserSession {
   name?: string; 
   email: string;
   role: string;
+  departmentId?: string;
+  permissions?: any;
 
 }
 

@@ -1,13 +1,23 @@
-import { Header } from "@/components/shared/Header";
-import { Sidebar } from "@/components/shared/Sidebar";
-import { type LoaderFunctionArgs, redirect } from "@remix-run/node";
+import {
+  type LoaderFunctionArgs,
+  MetaFunction,
+  redirect,
+} from "@remix-run/node";
 import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
 import { useLoaderData } from "@remix-run/react";
 import { USER_ROLES } from "@/utils/constants";
-import StudentDashboard from "./dashboard.student";
-import DepartmentAdminDashboard from "./dashboard.department";
+import StudentDashboard from "./dashboard.applicant";
+import DepartmentAdminDashboard from "./dashboard.admin";
 import SuperAdminDashboard from "./dashboard.super";
+import { getCurrentDateTime } from "@/utils/utils/getTimeBasedGreeting";
+import {
+  SunIcon,
+  SparklesIcon,
+  MoonIcon,
+  CalendarIcon,
+  ClockIcon,
+} from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -28,8 +38,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return { user };
 }
 
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Dashboard | UniQualifyer" },
+    { name: "description", content: "Your personalized dashboard" },
+  ];
+};
+
 export default function DashboardIndex() {
   const { user } = useLoaderData<typeof loader>();
+
+  const now = new Date();
+  const hour = now.getHours();
+  const { greeting, currentDate, currentTime } = getCurrentDateTime();
+
+  const TimeIcon = hour < 12 ? SunIcon : hour < 18 ? SparklesIcon : MoonIcon;
+  const iconColor =
+    hour < 12
+      ? "text-yellow-500"
+      : hour < 18
+      ? "text-blue-400"
+      : "text-indigo-500";
 
   const renderDashboard = () => {
     switch (user.role) {
@@ -44,35 +73,38 @@ export default function DashboardIndex() {
     }
   };
 
-  const getDashboardTitle = () => {
-    switch (user.role) {
-      case USER_ROLES.STUDENT:
-        return "Student Dashboard";
-      case USER_ROLES.DEPARTMENT_ADMINISTRATOR:
-        return "Department Admin Dashboard";
-      case USER_ROLES.SUPER_ADMIN:
-        return "Super Admin Dashboard";
-      default:
-        return "Dashboard";
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          <Sidebar user={user} />
-          <div className="flex-1">
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {getDashboardTitle()}
-              </h2>
-              {renderDashboard()}
+    <div className="bg-white shadow rounded-lg p-6">
+      <div className="group">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+          <div
+            className={`p-2 rounded-full bg-opacity-20 ${
+              hour < 12
+                ? "bg-yellow-100"
+                : hour < 18
+                ? "bg-blue-100"
+                : "bg-indigo-100"
+            }`}
+          >
+            <TimeIcon
+              className={`h-6 w-6 ${iconColor} transition-all duration-300 group-hover:scale-110`}
+            />
+          </div>
+          <div>
+            <span className="text-blue-600">
+              {greeting}, {user ? user.name : "User"}!
+            </span>
+            <div className="mt-2 text-sm font-medium text-gray-600 flex items-center">
+              <CalendarIcon className="h-5 w-5 text-gray-400 mr-1 transition-all duration-300 group-hover:text-blue-500" />
+              <span className="text-gray-800 font-medium">{currentDate}</span>
+              <span className="mx-2 text-gray-400">•</span>
+              <ClockIcon className="h-5 w-5 text-gray-400 mr-1 transition-all duration-300 group-hover:text-blue-500" />
+              <span className="text-gray-800 font-medium">{currentTime}</span>
             </div>
           </div>
-        </div>
-      </main>
+        </h2>
+      </div>
+      {renderDashboard()}
     </div>
   );
 }
