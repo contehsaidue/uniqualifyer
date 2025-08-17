@@ -10,6 +10,8 @@ interface UserSession {
   role: string;
   departmentId?: string;
   permissions?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
 
 }
 
@@ -218,3 +220,64 @@ export const refreshAccessToken = async (refreshToken: string): Promise<{ access
   
   return { accessToken };
 };
+
+
+/**
+ * Update user profile details
+ */
+
+export async function updateUser(
+  userId: string,
+  updates: {
+    name?: string;
+    email?: string;
+    phoneNumber?: string | null;
+  }
+) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: updates.name,
+      email: updates.email,
+     
+      updatedAt: new Date(),
+    },
+  });
+}
+
+/**
+ * Update user password
+ */
+
+export async function updateUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+) {
+  // First verify current password
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { password: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isValid) {
+    throw new Error("Current password is incorrect");
+  }
+
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      password: hashedPassword,
+      updatedAt: new Date(),
+    },
+  });
+}

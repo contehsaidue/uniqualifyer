@@ -144,27 +144,33 @@ export const getDepartments = async (
 ): Promise<(DepartmentBase | DepartmentWithUniversity | DepartmentWithAdministrators | DepartmentWithRelations)[]> => {
   verifyAdminPrivileges(currentUser);
 
-  // Department admins can only see their own department
   const whereClause = currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && currentUser.departmentId
     ? { id: currentUser.departmentId }
     : {};
 
+  // Set defaults to true if not specified
+  const includeUniversity = options?.includeUniversity ?? true;
+  const includeAdministrators = options?.includeAdministrators ?? true;
+
   const departments = await prisma.department.findMany({
     where: whereClause,
     include: {
-      university: options?.includeUniversity ? {
+      university: includeUniversity ? {
         select: {
           id: true,
-          name: true
+          name: true,
+          slug: true
         }
       } : false,
-      administrators: options?.includeAdministrators ? {
+      administrators: includeAdministrators ? {
         include: {
           user: {
             select: {
               id: true,
               name: true,
-              email: true
+              email: true,
+              role: true,
+              createdAt: true
             }
           }
         }
@@ -175,30 +181,40 @@ export const getDepartments = async (
     }
   });
 
-  // Transform the data to match expected return types
+  // Transform the data
   const transformedDepartments = departments.map(dept => ({
-    ...dept,
-    university: options?.includeUniversity ? dept.university : undefined,
-    administrators: options?.includeAdministrators 
-      ? dept.administrators?.map(admin => ({
-          id: admin.user.id,
-          name: admin.user.name,
-          email: admin.user.email
-        })) 
+    id: dept.id,
+    universityId: dept.universityId,
+    name: dept.name,
+    code: dept.code,
+    createdAt: dept.createdAt,
+    updatedAt: dept.updatedAt,
+    university: includeUniversity ? {
+      id: dept.university?.id || '',
+      name: dept.university?.name || '',
+      slug: dept.university?.slug || ''
+    } : undefined,
+    administrators: includeAdministrators ? 
+      dept.administrators?.map(admin => ({
+        id: admin.user.id,
+        name: admin.user.name,
+        email: admin.user.email,
+        role: admin.user.role,
+      })) 
       : undefined
   }));
 
-  // Properly type the return value based on the options
-  if (options?.includeUniversity && options?.includeAdministrators) {
+  // Type the return value
+  if (includeUniversity && includeAdministrators) {
     return transformedDepartments as DepartmentWithRelations[];
-  } else if (options?.includeUniversity) {
+  } else if (includeUniversity) {
     return transformedDepartments as DepartmentWithUniversity[];
-  } else if (options?.includeAdministrators) {
+  } else if (includeAdministrators) {
     return transformedDepartments as DepartmentWithAdministrators[];
-  } else {
-    return transformedDepartments as DepartmentBase[];
   }
+  return transformedDepartments as DepartmentBase[];
 };
+
 
 /**
  * Get department by ID with optional relations

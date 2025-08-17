@@ -4,3 +4,16 @@
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   --tw-shadow-surface: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
+
+/* Add smooth scrolling for the table */
+.table-container {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Style the table headers to stay fixed */
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}

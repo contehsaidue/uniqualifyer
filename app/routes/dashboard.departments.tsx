@@ -209,6 +209,18 @@ export async function action({ request }: ActionFunctionArgs) {
         break;
       }
 
+      case "remove-admin": {
+        const adminId = formData.get("adminId") as string;
+
+        await prisma?.departmentAdministrator.delete({
+          where: {
+            userId: adminId,
+          },
+        });
+
+        return { success: true, message: "Admin removed successfully" };
+      }
+
       default:
         return new Response(JSON.stringify({ error: "Invalid action" }), {
           status: 400,
@@ -237,6 +249,15 @@ export default function DepartmentManagement() {
   const [departmentToDelete, setDepartmentToDelete] = useState<string | null>(
     null
   );
+  const [isAdminsModalOpen, setIsAdminsModalOpen] = useState(false);
+  const [currentAdmins, setCurrentAdmins] = useState<{
+    departmentName: string;
+    admins: {
+      id: string;
+      name: string;
+      email: string;
+    }[];
+  } | null>(null);
   const [currentDepartment, setCurrentDepartment] = useState<{
     id?: string;
     name: string;
@@ -285,6 +306,19 @@ export default function DepartmentManagement() {
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
     setDepartmentToDelete(null);
+  };
+
+  const openAdminsModal = (department: Department) => {
+    setCurrentAdmins({
+      departmentName: department.name,
+      admins: department.administrators || [],
+    });
+    setIsAdminsModalOpen(true);
+  };
+
+  const closeAdminsModal = () => {
+    setIsAdminsModalOpen(false);
+    setCurrentAdmins(null);
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -359,14 +393,14 @@ export default function DepartmentManagement() {
             <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
           </button>
 
-          <Link
-            to={`/dashboard/departments/${row.original.id}/administrators`}
-            className="p-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold flex items-center justify-center rounded"
-            aria-label="Manage Admins"
+          <button
+            onClick={() => openAdminsModal(row.original)}
+            className="p-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold flex items-center justify-center rounded"
+            aria-label="View Admins"
           >
             <Users size={16} />
-            <span className="sr-only sm:not-sr-only sm:ml-2">Admins</span>
-          </Link>
+            <span className="sr-only sm:not-sr-only sm:ml-2">View Admins</span>
+          </button>
         </div>
       ),
     },
@@ -482,6 +516,76 @@ export default function DepartmentManagement() {
                   </div>
                 </div>
               </Form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admins Modal */}
+      {isAdminsModalOpen && currentAdmins && (
+        <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] flex flex-col">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">
+                Administrators for {currentAdmins.departmentName}
+              </h2>
+
+              <div className="overflow-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentAdmins.admins.length > 0 ? (
+                      currentAdmins.admins.map((admin) => (
+                        <tr key={admin.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {admin.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {admin.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <button className="text-blue-600 hover:text-blue-900 mr-4">
+                              Edit
+                            </button>
+                            <button className="text-red-600 hover:text-red-900">
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="px-6 py-4 text-center text-sm text-gray-500"
+                        >
+                          No administrators assigned to this department
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="flex justify-end p-4 border-t border-gray-200">
+              <button
+                onClick={closeAdminsModal}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -104,7 +104,7 @@ export default function Sidebar({ user }: SidebarProps) {
 
     {
       id: "settings",
-      to: "/settings",
+      to: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
       label: "Settings",
       roles: [
@@ -203,7 +203,7 @@ export default function Sidebar({ user }: SidebarProps) {
         {/* Profile Actions */}
         <div className="space-y-1">
           <Link
-            to="/profile"
+            to="/dashboard/profile"
             className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 w-full"
           >
             <User className="h-4 w-4" />

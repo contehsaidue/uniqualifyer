@@ -241,7 +241,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function CreateUsers() {
+export default function Users() {
   const { adminUsers, departments, currentUser } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
