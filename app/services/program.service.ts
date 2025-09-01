@@ -1,60 +1,133 @@
 import prisma from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
+import { UserRole, RequirementType } from '@prisma/client';
 
 interface UserSession {
   id: string;
-  name?: string;
+  name?: string; 
   email: string;
   role: UserRole;
-  departmentId?: string;
   permissions?: any;
+  department?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  university?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Program {
   id: string;
   name: string;
-  slug: string;
-  universityId: string;
-  degreeType: string;
-  duration: number;
+  departmentId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 interface CreateProgramInput {
   name: string;
-  slug: string;
-  universityId: string;
-  degreeType: string;
-  duration: number;
+  departmentId: string;
 }
 
 interface UpdateProgramInput {
   name?: string;
-  slug?: string;
-  degreeType?: string;
-  duration?: number;
+  departmentId?: string;
 }
 
 interface ProgramWithRelations extends Program {
-  university: {
+  department?: {
     id: string;
     name: string;
+    code: string;
+    university?: {
+      id: string;
+      name: string;
+      slug: string; 
+    };
   };
   requirements: {
     id: string;
-    name: string;
+    type: RequirementType;
+    subject: string | null;
+    minGrade: string | null;
     description: string;
-    isMandatory: boolean;
+    createdAt: Date;
+    updatedAt: Date;
   }[];
+}
+
+interface ProgramRequirementInput {
+  type: RequirementType;
+  subject?: string;
+  minGrade?: string;
+  description: string;
+}
+
+interface ProgramBase {
+  id: string;
+  name: string;
+  departmentId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+interface RequirementForRelation {
+  id: string;
+  type: RequirementType; 
+  subject: string | null;
+  minGrade: string | null;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProgramWithUniversity extends ProgramBase {
+  department?: {
+    id: string;
+    name: string;
+    code: string; // Add code property
+    university?: {
+      id: string;
+      name: string;
+      slug: string; // Add slug property
+    };
+  };
+  requirements: undefined;
+}
+
+interface ProgramWithRequirements extends ProgramBase {
+  department: undefined;
+  requirements: RequirementForRelation[];
 }
 
 /**
  * Verify admin privileges for program operations
  */
 const verifyAdminPrivileges = (currentUser: UserSession) => {
-  if (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.DEPARTMENT_ADMIN) {
+  if (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.DEPARTMENT_ADMINISTRATOR) {
     throw new Error('Unauthorized: Only admins can manage programs');
+  }
+};
+
+/**
+ * Verify department admin has access to the program
+ */
+const verifyDepartmentAdminAccess = async (currentUser: UserSession, programId: string) => {
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
+    const program = await prisma.program.findUnique({
+      where: { id: programId },
+      select: { departmentId: true }
+    });
+
+    if (!program || program.departmentId !== currentUser.department?.id) {
+      throw new Error('Unauthorized: You can only manage programs in your department');
+    }
   }
 };
 
@@ -67,49 +140,50 @@ export const createProgram = async (
 ): Promise<Program> => {
   verifyAdminPrivileges(currentUser);
 
-  // Validate slug format
-  if (!/^[a-z0-9-]+$/.test(input.slug)) {
-    throw new Error('Slug can only contain lowercase letters, numbers, and hyphens');
+  // For department admins, verify they're creating a program in their own department
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
+    if (!input.departmentId || input.departmentId !== currentUser.department?.id) {
+      throw new Error('Unauthorized: You can only create programs in your department');
+    }
+    
+    // Verify the department exists and belongs to the user's university
+    const department = await prisma.department.findUnique({
+      where: { id: input.departmentId },
+      select: { universityId: true }
+    });
+
+    if (!department || (currentUser.university?.id && department.universityId !== currentUser.university?.id)) {
+      throw new Error('Department does not belong to your university');
+    }
   }
 
-  // Check if university exists
-  const universityExists = await prisma.university.findUnique({
-    where: { id: input.universityId }
-  });
+  // If departmentId is provided, check if department exists
+  if (input.departmentId) {
+    const departmentExists = await prisma.department.findUnique({
+      where: { id: input.departmentId }
+    });
 
-  if (!universityExists) {
-    throw new Error('University not found');
+    if (!departmentExists) {
+      throw new Error('Department not found');
+    }
   }
 
-  // Check for existing program with same name or slug in the same university
+  // Check for existing program with same name in the same department
   const existingProgram = await prisma.program.findFirst({
     where: {
-      universityId: input.universityId,
-      OR: [
-        { name: input.name },
-        { slug: input.slug }
-      ]
+      departmentId: input.departmentId,
+      name: input.name
     }
   });
 
   if (existingProgram) {
-    if (existingProgram.name === input.name) {
-      throw new Error('A program with this name already exists in this university');
-    }
-    if (existingProgram.slug === input.slug) {
-      throw new Error('A program with this slug already exists in this university');
-    }
+    throw new Error('A program with this name already exists in this department');
   }
 
   return await prisma.program.create({
     data: {
       name: input.name,
-      slug: input.slug,
-      universityId: input.universityId,
-      degreeType: input.degreeType,
-      duration: input.duration,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      departmentId: input.departmentId,
     }
   });
 };
@@ -119,35 +193,68 @@ export const createProgram = async (
  */
 export const getPrograms = async (
   currentUser: UserSession,
-  universityId?: string,
   options?: {
     includeUniversity?: boolean;
     includeRequirements?: boolean;
+    includeDepartment?: boolean;
+    universityId?: string;
+    departmentId?: string;
   }
-): Promise<ProgramWithRelations[]> => {
+): Promise<(ProgramBase | ProgramWithUniversity | ProgramWithRequirements | ProgramWithRelations)[]> => {
   verifyAdminPrivileges(currentUser);
 
-  const whereClause = universityId ? { universityId } : {};
+  let whereClause: any = {};
 
-  return await prisma.program.findMany({
+  // Department admin should only see programs from their specific department
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && currentUser.department?.id) {
+    whereClause.departmentId = currentUser.department?.id;
+  }
+  
+  // Filter by specific university if provided (through department relation)
+  if (options?.universityId) {
+    whereClause.department = {
+      universityId: options.universityId
+    };
+  }
+  
+  // Filter by specific department if provided
+  if (options?.departmentId) {
+    whereClause.departmentId = options.departmentId;
+  }
+
+  const includeUniversity = options?.includeUniversity ?? false;
+  const includeRequirements = options?.includeRequirements ?? true;
+  const includeDepartment = options?.includeDepartment ?? false;
+
+  const programs = await prisma.program.findMany({
     where: whereClause,
     include: {
-      university: options?.includeUniversity ? {
-        select: {
-          id: true,
-          name: true
-        }
-      } : false,
-      requirements: options?.includeRequirements ? {
+      department: includeDepartment || includeUniversity ? {
         select: {
           id: true,
           name: true,
+          code: true,
+          university: includeUniversity ? {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          } : false
+        }
+      } : false,
+      requirements: includeRequirements ? {
+        select: {
+          id: true,
+          type: true,
+          subject: true,
+          minGrade: true,
           description: true,
-          isMandatory: true
+          createdAt: true,
+          updatedAt: true
         },
         orderBy: {
-          isMandatory: 'desc',
-          name: 'asc'
+          createdAt: 'asc'
         }
       } : false,
     },
@@ -155,8 +262,36 @@ export const getPrograms = async (
       name: 'asc'
     }
   });
-};
 
+  const transformedPrograms = programs.map(prog => ({
+    id: prog.id,
+    departmentId: prog.departmentId || undefined,
+    name: prog.name,
+    createdAt: prog.createdAt,
+    updatedAt: prog.updatedAt,
+    department: (includeDepartment || includeUniversity) && prog.department ? {
+      id: prog.department.id,
+      name: prog.department.name,
+      code: prog.department.code, // This was causing the error
+      university: includeUniversity && prog.department.university ? {
+        id: prog.department.university?.id,
+        name: prog.department.university?.name,
+        slug: prog.department.university?.slug
+      } : undefined
+    } : undefined,
+    requirements: includeRequirements ? prog.requirements : undefined 
+  }));
+
+  // Fix the type casting - remove "unknown" and use proper types
+  if (includeUniversity && includeDepartment) {
+    return transformedPrograms as ProgramWithRelations[];
+  } else if (includeUniversity) {
+    return transformedPrograms as ProgramWithUniversity[];
+  } else if (includeRequirements) {
+    return transformedPrograms as ProgramWithRequirements[];
+  }
+  return transformedPrograms as ProgramBase[];
+};
 /**
  * Get program by ID with optional relations
  */
@@ -166,72 +301,74 @@ export const getProgramById = async (
   options?: {
     includeUniversity?: boolean;
     includeRequirements?: boolean;
+    includeDepartment?: boolean;
   }
 ): Promise<ProgramWithRelations | null> => {
   verifyAdminPrivileges(currentUser);
 
-  return await prisma.program.findUnique({
+  const includeUniversity = options?.includeUniversity ?? false;
+  const includeRequirements = options?.includeRequirements ?? false;
+  const includeDepartment = options?.includeDepartment ?? false;
+
+  const program = await prisma.program.findUnique({
     where: { id },
     include: {
-      university: options?.includeUniversity ? {
-        select: {
-          id: true,
-          name: true
-        }
-      } : false,
-      requirements: options?.includeRequirements ? {
+      department: includeDepartment || includeUniversity ? {
         select: {
           id: true,
           name: true,
+          code: true,
+          university: includeUniversity ? {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          } : false
+        }
+      } : false,
+      requirements: includeRequirements ? {
+        select: {
+          id: true,
+          type: true,
+          subject: true,
+          minGrade: true,
           description: true,
-          isMandatory: true
+          createdAt: true,
+          updatedAt: true
         },
         orderBy: {
-          isMandatory: 'desc',
-          name: 'asc'
+          createdAt: 'asc'
         }
       } : false,
     }
   });
-};
 
-/**
- * Get program by slug with optional relations
- */
-export const getProgramBySlug = async (
-  slug: string,
-  universityId: string,
-  currentUser: UserSession,
-  options?: {
-    includeUniversity?: boolean;
-    includeRequirements?: boolean;
+  if (!program) {
+    return null;
   }
-): Promise<ProgramWithRelations | null> => {
-  verifyAdminPrivileges(currentUser);
 
-  return await prisma.program.findUnique({
-    where: { slug, universityId },
-    include: {
-      university: options?.includeUniversity ? {
-        select: {
-          id: true,
-          name: true
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
+    await verifyDepartmentAdminAccess(currentUser, program.id);
+  }
+
+  // Transform the program to match the expected return type
+  const transformedProgram: ProgramWithRelations = {
+    ...program,
+    department: program.department ? {
+      id: program.department.id,
+      name: program.department.name,
+      ...(program.department.university && {
+        university: {
+          id: program.department.university.id,
+          name: program.department.university.name
         }
-      } : false,
-      requirements: options?.includeRequirements ? {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          isMandatory: true
-        },
-        orderBy: {
-          isMandatory: 'desc',
-          name: 'asc'
-        }
-      } : false,
-    }
-  });
+      })
+    } : undefined,
+    requirements: program.requirements || []
+  };
+
+  return transformedProgram;
 };
 
 /**
@@ -244,31 +381,40 @@ export const updateProgram = async (
 ): Promise<Program> => {
   verifyAdminPrivileges(currentUser);
 
-  if (input.slug && !/^[a-z0-9-]+$/.test(input.slug)) {
-    throw new Error('Slug can only contain lowercase letters, numbers, and hyphens');
+  // First get the program to verify access
+  const program = await prisma.program.findUnique({
+    where: { id },
+    select: { departmentId: true }
+  });
+
+  if (!program) {
+    throw new Error('Program not found');
   }
 
-  // Check for existing program with same slug if slug is being updated
-  if (input.slug) {
-    const existingProgram = await prisma.program.findFirst({
-      where: {
-        slug: input.slug,
-        NOT: { id }
-      }
+  await verifyDepartmentAdminAccess(currentUser, id);
+
+  // For department admins, prevent changing department
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && input.departmentId) {
+    if (input.departmentId !== program.departmentId) {
+      throw new Error('Unauthorized: You cannot change the department of a program');
+    }
+  }
+
+  // If changing department, verify the new department exists
+  if (input.departmentId && input.departmentId !== program.departmentId) {
+    const departmentExists = await prisma.department.findUnique({
+      where: { id: input.departmentId }
     });
 
-    if (existingProgram) {
-      throw new Error('A program with this slug already exists');
+    if (!departmentExists) {
+      throw new Error('Department not found');
     }
   }
 
   return await prisma.program.update({
     where: { id },
     data: {
-      name: input.name,
-      slug: input.slug,
-      degreeType: input.degreeType,
-      duration: input.duration,
+      ...input,
       updatedAt: new Date()
     }
   });
@@ -283,13 +429,27 @@ export const deleteProgram = async (
 ): Promise<void> => {
   verifyAdminPrivileges(currentUser);
 
+  // First get the program to verify access
+  const program = await prisma.program.findUnique({
+    where: { id },
+    select: { departmentId: true }
+  });
+
+  if (!program) {
+    throw new Error('Program not found');
+  }
+
+  await verifyDepartmentAdminAccess(currentUser, id);
+
   // Use transaction to delete all related records
   await prisma.$transaction([
     // Delete all program requirements
     prisma.programRequirement.deleteMany({
-      where: {
-        programId: id
-      }
+      where: { programId: id }
+    }),
+    // Delete all applications to this program
+    prisma.application.deleteMany({
+      where: { programId: id }
     }),
     // Delete the program
     prisma.program.delete({
@@ -299,50 +459,53 @@ export const deleteProgram = async (
 };
 
 /**
- * Search programs by name or slug
+ * Add requirement to program
  */
-export const searchPrograms = async (
-  query: string,
-  universityId: string,
-  currentUser: UserSession,
-  limit: number = 10
-): Promise<Program[]> => {
+export const addProgramRequirement = async (
+  programId: string,
+  requirementData: ProgramRequirementInput,
+  currentUser: UserSession
+) => {
   verifyAdminPrivileges(currentUser);
+  await verifyDepartmentAdminAccess(currentUser, programId);
 
-  return await prisma.program.findMany({
-    where: {
-      universityId,
-      OR: [
-        { name: { contains: query, mode: 'insensitive' } },
-        { slug: { contains: query, mode: 'insensitive' } }
-      ]
-    },
-    take: limit,
-    orderBy: {
-      name: 'asc'
+  return await prisma.programRequirement.create({
+    data: {
+      programId,
+      type: requirementData.type,
+      subject: requirementData.subject || null,
+      minGrade: requirementData.minGrade || null,
+      description: requirementData.description
     }
   });
 };
 
 /**
- * Add requirement to program
+ * Update program requirement
  */
-export const addProgramRequirement = async (
-  programId: string,
-  requirementData: {
-    name: string;
-    description: string;
-    isMandatory: boolean;
-  },
+export const updateProgramRequirement = async (
+  requirementId: string,
+  requirementData: Partial<ProgramRequirementInput>,
   currentUser: UserSession
 ) => {
   verifyAdminPrivileges(currentUser);
 
-  return await prisma.programRequirement.create({
+  // First get the requirement with program to verify access
+  const requirement = await prisma.programRequirement.findUnique({
+    where: { id: requirementId },
+    include: { program: true }
+  });
+
+  if (!requirement) {
+    throw new Error('Requirement not found');
+  }
+
+  await verifyDepartmentAdminAccess(currentUser, requirement.program.id);
+
+  return await prisma.programRequirement.update({
+    where: { id: requirementId },
     data: {
       ...requirementData,
-      programId,
-      createdAt: new Date(),
       updatedAt: new Date()
     }
   });
@@ -357,7 +520,59 @@ export const removeProgramRequirement = async (
 ) => {
   verifyAdminPrivileges(currentUser);
 
+  // First get the requirement with program to verify access
+  const requirement = await prisma.programRequirement.findUnique({
+    where: { id: requirementId },
+    include: { program: true }
+  });
+
+  if (!requirement) {
+    throw new Error('Requirement not found');
+  }
+
+  await verifyDepartmentAdminAccess(currentUser, requirement.program.id);
+
   return await prisma.programRequirement.delete({
     where: { id: requirementId }
+  });
+};
+
+/**
+ * Search programs by name within a university or department
+ */
+export const searchPrograms = async (
+  query: string,
+  currentUser: UserSession,
+  universityId?: string,
+  departmentId?: string,
+  limit: number = 10
+): Promise<Program[]> => {
+  verifyAdminPrivileges(currentUser);
+
+  let whereClause: any = {
+    name: { contains: query, mode: 'insensitive' }
+  };
+
+  // Department admin should only search programs in their department
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && currentUser.department?.id) {
+    whereClause.departmentId = currentUser.department?.id;
+  } else {
+    // For super admins, filter by university/department if provided
+    if (universityId) {
+      whereClause.department = {
+        universityId: universityId
+      };
+    }
+    if (departmentId) {
+      whereClause.departmentId = departmentId;
+    }
+  }
+
+  return await prisma.program.findMany({
+    where: whereClause,
+    take: limit,
+    orderBy: {
+      name: 'asc'
+    }
   });
 };

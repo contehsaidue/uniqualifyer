@@ -1,4 +1,3 @@
-
 import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { generateTokens, verifyToken } from '@/utils/token.server'
@@ -8,11 +7,19 @@ interface UserSession {
   name?: string; 
   email: string;
   role: string;
-  departmentId?: string;
   permissions?: any;
+  department?: {
+    id: string;
+    name: string;
+    code: string;
+  };
+  university?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
-
 }
 
 interface AuthResponse {
@@ -23,14 +30,69 @@ interface AuthResponse {
   };
 }
 
+// Helper function to get user with department/university data
+async function getUserWithRoleData(userId: string, role: string): Promise<UserSession> {
+  const baseUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      department_administrator: {
+        include: {
+          department: {
+            include: {
+              university: true
+            }
+          }
+        }
+      },
+      student: true,
+      super_admin: true
+    }
+  });
+
+  if (!baseUser) {
+    throw new Error('User not found');
+  }
+
+  const userSession: UserSession = {
+    id: baseUser.id,
+    email: baseUser.email,
+    name: baseUser.name,
+    role: baseUser.role
+  };
+
+  // Add role-specific data
+  if (baseUser.role === 'DEPARTMENT_ADMINISTRATOR' && baseUser.department_administrator) {
+    userSession.permissions = baseUser.department_administrator.permissions;
+    
+    if (baseUser.department_administrator.department) {
+      userSession.department = {
+        id: baseUser.department_administrator.department.id,
+        name: baseUser.department_administrator.department.name,
+        code: baseUser.department_administrator.department.code
+      };
+      
+      if (baseUser.department_administrator.department.university) {
+        userSession.university = {
+          id: baseUser.department_administrator.department.university.id,
+          name: baseUser.department_administrator.department.university.name,
+          slug: baseUser.department_administrator.department.university.slug
+        };
+      }
+    }
+  } else if (baseUser.role === 'SUPER_ADMIN' && baseUser.super_admin) {
+    userSession.permissions = baseUser.super_admin.permissions;
+  }
+
+  return userSession;
+}
+
 /**
  * Register a new user
  */
-
 export const registerUser = async (
   name: string, 
   email: string, 
-  password: string
+  password: string,
 ): Promise<AuthResponse> => {
   // Hash the password
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -41,7 +103,6 @@ export const registerUser = async (
       name,
       email,
       password: hashedPassword,
-      
     }
   });
 
@@ -55,13 +116,11 @@ export const registerUser = async (
     }
   });
 
+  // Get full user data with role information
+  const userWithRoleData = await getUserWithRoleData(user.id, user.role);
+
   return {
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role
-    },
+    user: userWithRoleData,
     tokens: { 
       accessToken, 
       refreshToken 
@@ -72,7 +131,6 @@ export const registerUser = async (
 /**
  * Login user with email and password
  */
-
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
   const user = await prisma.user.findUnique({
     where: { email }
@@ -101,12 +159,11 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     }
   });
 
+  // Get full user data with role information
+  const userWithRoleData = await getUserWithRoleData(user.id, user.role);
+
   return {
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role
-    },
+    user: userWithRoleData,
     tokens: { accessToken, refreshToken }
   };
 };
@@ -114,7 +171,6 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
 /**
  * Get user by session (using refresh token)
  */
-
 export const getUserBySession = async (refreshToken: string): Promise<UserSession | null> => {
   try {
     // Verify the refresh token
@@ -126,9 +182,6 @@ export const getUserBySession = async (refreshToken: string): Promise<UserSessio
         refreshToken,
         userId: decoded.userId,
         expiresAt: { gt: new Date() }
-      },
-      include: {
-        user: true
       }
     });
 
@@ -136,12 +189,8 @@ export const getUserBySession = async (refreshToken: string): Promise<UserSessio
       return null;
     }
 
-    return {
-      id: session.user.id,
-      email: session.user.email,
-      role: session.user.role,
-      name: session.user.name
-    };
+    // Get full user data with role information
+    return await getUserWithRoleData(decoded.userId, decoded.role as string);
   } catch (error) {
     return null;
   }
@@ -150,25 +199,12 @@ export const getUserBySession = async (refreshToken: string): Promise<UserSessio
 /**
  * Get user by access token
  */
-
 export const getUserByToken = async (accessToken: string): Promise<UserSession | null> => {
   try {
     const decoded = await verifyToken(accessToken);
     
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name
-    };
+    // Get full user data with role information
+    return await getUserWithRoleData(decoded.userId, decoded.role as string);
   } catch (error) {
     return null;
   }
@@ -220,7 +256,6 @@ export const refreshAccessToken = async (refreshToken: string): Promise<{ access
   
   return { accessToken };
 };
-
 
 /**
  * Update user profile details

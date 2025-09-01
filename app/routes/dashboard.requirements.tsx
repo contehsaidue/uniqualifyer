@@ -9,25 +9,17 @@ import {
 import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
 import { useEffect, useState } from "react";
-import { UserRole } from "@prisma/client";
+import { UserRole, RequirementType } from "@prisma/client";
 import { toast } from "sonner";
-import {
-  BookOpenText,
-  Edit,
-  Trash,
-  PlusCircle,
-  ChevronDown,
-  ChevronUp,
-  Building,
-  GraduationCap,
-} from "lucide-react";
+import { BookOpenText, Edit, Trash, PlusCircle } from "lucide-react";
 import { GenericTable } from "@/components/shared/GenericTable";
+import { getPrograms } from "@/services/program.service";
 import {
-  createProgram,
-  getPrograms,
-  updateProgram,
-  deleteProgram,
-} from "@/services/program.service";
+  createProgramRequirement,
+  getProgramRequirements,
+  updateProgramRequirement,
+  deleteProgramRequirement,
+} from "@/services/requirement.service";
 
 interface ActionData {
   error?: string;
@@ -35,24 +27,25 @@ interface ActionData {
   message?: string;
 }
 
-interface Program {
+interface ProgramRequirement {
   id: string;
-  name: string;
-  department: {
+  programId: string;
+  program: {
     id: string;
     name: string;
-    university?: {
+    department: {
       id: string;
       name: string;
-    };
-  } | null;
-  requirements: {
-    id: string;
-    type: string;
-    subject: string | null;
-    minGrade: string | null;
-    description: string;
-  }[];
+      university?: {
+        id: string;
+        name: string;
+      };
+    } | null;
+  };
+  type: RequirementType;
+  subject: string | null;
+  minGrade: string | null;
+  description: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,22 +83,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
         ? user.department?.id
         : undefined;
 
+    // Get requirements
+    const requirements = await getProgramRequirements(
+      { ...user, role: user.role as UserRole },
+      {
+        includeProgram: true,
+        includeDepartment: true,
+        includeUniversity: true,
+        universityId,
+        departmentId,
+      }
+    );
+
+    // Get programs for dropdown (filtered by user permissions)
     const programs = await getPrograms(
       { ...user, role: user.role as UserRole },
       {
-        includeDepartment: true,
-        includeUniversity: true,
-        includeRequirements: true,
         universityId,
         departmentId,
       }
     );
 
     return {
+      requirements: requirements.map((requirement) => ({
+        ...requirement,
+        createdAt: requirement.createdAt.toISOString(),
+        updatedAt: requirement.updatedAt.toISOString(),
+      })),
       programs: programs.map((program) => ({
-        ...program,
-        createdAt: program.createdAt.toISOString(),
-        updatedAt: program.updatedAt.toISOString(),
+        id: program.id,
+        name: program.name,
       })),
       currentUser: user,
     };
@@ -113,7 +120,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return new Response(
       JSON.stringify({
         error:
-          error instanceof Error ? error.message : "Failed to load programs",
+          error instanceof Error
+            ? error.message
+            : "Failed to load requirements",
       }),
       {
         status: 500,
@@ -149,45 +158,58 @@ export async function action({ request }: ActionFunctionArgs) {
 
     switch (actionType) {
       case "create": {
-        const programData = {
-          name: formData.get("name") as string,
-          departmentId: formData.get("departmentId") as string,
+        const requirementData = {
+          programId: formData.get("programId") as string,
+          type: formData.get("type") as RequirementType,
+          subject: formData.get("subject") as string,
+          minGrade: formData.get("minGrade") as string,
+          description: formData.get("description") as string,
         };
 
-        const program = await createProgram(programData, {
+        const requirement = await createProgramRequirement(requirementData, {
           ...user,
           role: user.role as UserRole,
         });
         return {
           success: true,
-          message: "Program created successfully",
-          program,
+          message: "Requirement created successfully",
+          requirement,
         };
       }
 
       case "update": {
         const id = formData.get("id") as string;
-        const programData = {
-          name: formData.get("name") as string,
+        const requirementData = {
+          type: formData.get("type") as RequirementType,
+          subject: formData.get("subject") as string,
+          minGrade: formData.get("minGrade") as string,
+          description: formData.get("description") as string,
         };
 
-        const program = await updateProgram(id, programData, {
-          ...user,
-          role: user.role as UserRole,
-        });
+        const requirement = await updateProgramRequirement(
+          id,
+          requirementData,
+          {
+            ...user,
+            role: user.role as UserRole,
+          }
+        );
         return {
           success: true,
-          message: "Program updated successfully",
-          program,
+          message: "Requirement updated successfully",
+          requirement,
         };
       }
 
       case "delete": {
         const id = formData.get("id") as string;
-        await deleteProgram(id, { ...user, role: user.role as UserRole });
+        await deleteProgramRequirement(id, {
+          ...user,
+          role: user.role as UserRole,
+        });
         return {
           success: true,
-          message: "Program deleted successfully",
+          message: "Requirement deleted successfully",
         };
       }
 
@@ -207,18 +229,17 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function ProgramManagement() {
-  const { programs, currentUser } = useLoaderData<typeof loader>();
+export default function RequirementManagement() {
+  const { requirements, programs, currentUser } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [programToDelete, setProgramToDelete] = useState<string | null>(null);
-  const [currentProgram, setCurrentProgram] = useState<Partial<Program> | null>(
+  const [requirementToDelete, setRequirementToDelete] = useState<string | null>(
     null
   );
-  const [expandedPrograms, setExpandedPrograms] = useState<
-    Record<string, boolean>
-  >({});
+  const [currentRequirement, setCurrentRequirement] =
+    useState<Partial<ProgramRequirement> | null>(null);
   const submit = useSubmit();
 
   useEffect(() => {
@@ -229,45 +250,35 @@ export default function ProgramManagement() {
     }
   }, [actionData]);
 
-  const toggleProgramDetails = (programId: string) => {
-    setExpandedPrograms((prev) => ({
-      ...prev,
-      [programId]: !prev[programId],
-    }));
-  };
-
-  const openEditModal = (program: Program) => {
-    setCurrentProgram(program);
+  const openEditModal = (requirement: ProgramRequirement) => {
+    setCurrentRequirement(requirement);
     setIsModalOpen(true);
   };
 
   const openCreateModal = () => {
-    setCurrentProgram({
-      name: "",
-      department:
-        currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR
-          ? {
-              id: currentUser.department?.id || "",
-              name: currentUser.department?.name || "",
-            }
-          : null,
+    setCurrentRequirement({
+      programId: programs.length > 0 ? programs[0].id : "",
+      type: RequirementType.GRADE as RequirementType,
+      subject: "",
+      minGrade: "",
+      description: "",
     });
     setIsModalOpen(true);
   };
 
   const openDeleteModal = (id: string) => {
-    setProgramToDelete(id);
+    setRequirementToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setCurrentProgram(null);
+    setCurrentRequirement(null);
   };
 
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setProgramToDelete(null);
+    setRequirementToDelete(null);
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -283,60 +294,51 @@ export default function ProgramManagement() {
       cell: ({ row }: { row: { index: number } }) => row.index + 1,
     },
     {
-      id: "name",
-      cell: (info: { row: { original: Program } }) => (
-        <div className="flex items-center">
-          <button
-            onClick={() => toggleProgramDetails(info.row.original.id)}
-            className="mr-2 text-gray-500 hover:text-gray-700"
-          >
-            {expandedPrograms[info.row.original.id] ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-          <span>{info.row.original.name}</span>
+      id: "program",
+      cell: (info: { row: { original: ProgramRequirement } }) =>
+        info.row.original.program.name,
+      header: () => (
+        <span className="flex items-center">
+          <BookOpenText className="me-2" size={16} /> Program
+        </span>
+      ),
+    },
+    {
+      id: "type",
+      cell: (info: { row: { original: ProgramRequirement } }) => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 capitalize">
+          {info.row.original.type.toLowerCase()}
+        </span>
+      ),
+      header: "Type",
+    },
+    {
+      id: "subject",
+      cell: (info: { row: { original: ProgramRequirement } }) =>
+        info.row.original.subject || "N/A",
+      header: "Subject",
+    },
+    {
+      id: "minGrade",
+      cell: (info: { row: { original: ProgramRequirement } }) =>
+        info.row.original.minGrade || "N/A",
+      header: "Minimum Grade",
+    },
+    {
+      id: "description",
+      cell: (info: { row: { original: ProgramRequirement } }) => (
+        <div
+          className="max-w-xs truncate"
+          title={info.row.original.description}
+        >
+          {info.row.original.description}
         </div>
       ),
-      header: () => (
-        <span className="flex items-center">
-          <BookOpenText className="me-2" size={16} /> Program Name
-        </span>
-      ),
-    },
-    {
-      id: "department",
-      cell: (info: { row: { original: Program } }) =>
-        info.row.original.department?.name || "No department",
-      header: () => (
-        <span className="flex items-center">
-          <Building className="me-2" size={16} /> Department
-        </span>
-      ),
-    },
-    {
-      id: "university",
-      cell: (info: { row: { original: Program } }) =>
-        info.row.original.department?.university?.name || "No university",
-      header: () => (
-        <span className="flex items-center">
-          <GraduationCap className="me-2" size={16} /> University
-        </span>
-      ),
-    },
-    {
-      id: "requirements",
-      cell: (info: { row: { original: Program } }) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {info.row.original.requirements.length} requirements
-        </span>
-      ),
-      header: "Requirements",
+      header: "Description",
     },
     {
       id: "actions",
-      cell: ({ row }: { row: { original: Program } }) => (
+      cell: ({ row }: { row: { original: ProgramRequirement } }) => (
         <div className="flex gap-1 sm:gap-2">
           <button
             onClick={() => openEditModal(row.original)}
@@ -365,76 +367,125 @@ export default function ProgramManagement() {
       <div className="flex flex-wrap mb-6">
         <div className="w-full md:w-2/3">
           <h2 className="text-2xl font-bold text-gray-900">
-            Program Management
+            Program Requirement Management
           </h2>
           <p className="text-gray-600 text-sm">
-            Manage academic programs and their requirements
+            Manage admission requirements for academic programs
           </p>
         </div>
         <div className="w-full md:w-1/3 text-right mt-3 md:mt-0">
-          {currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && (
-            <button
-              onClick={openCreateModal}
-              className="bg-green-600 text-white py-2 px-4 rounded text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 inline-flex items-center"
-            >
-              <PlusCircle className="mr-2" size={18} />
-              Add Program
-            </button>
-          )}
+          <button
+            onClick={openCreateModal}
+            className="bg-green-600 text-white py-2 px-4 rounded text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 inline-flex items-center"
+          >
+            <PlusCircle className="mr-2" size={18} />
+            Add Requirement
+          </button>
         </div>
       </div>
 
-      <GenericTable data={programs} columns={columns} />
+      <GenericTable data={requirements} columns={columns} />
 
       {/* Create/Edit Modal */}
-      {isModalOpen && currentProgram && (
+      {isModalOpen && currentRequirement && (
         <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">
-                {currentProgram.id ? "Edit Program" : "Create New Program"}
+                {currentRequirement.id
+                  ? "Edit Requirement"
+                  : "Create New Requirement"}
               </h2>
 
               <Form method="post" onSubmit={handleFormSubmit}>
                 <input
                   type="hidden"
                   name="_action"
-                  value={currentProgram.id ? "update" : "create"}
+                  value={currentRequirement.id ? "update" : "create"}
                 />
-                {currentProgram.id && (
-                  <input type="hidden" name="id" value={currentProgram.id} />
+                {currentRequirement.id && (
+                  <input
+                    type="hidden"
+                    name="id"
+                    value={currentRequirement.id}
+                  />
                 )}
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Program Name
+                      Program
+                    </label>
+                    <select
+                      name="programId"
+                      defaultValue={currentRequirement.programId}
+                      required
+                      disabled={!!currentRequirement.id}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                    >
+                      {programs.map((program: any) => (
+                        <option key={program.id} value={program.id}>
+                          {program.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Requirement Type
+                    </label>
+                    <select
+                      name="type"
+                      defaultValue={currentRequirement.type}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {Object.values(RequirementType).map((type) => (
+                        <option key={type} value={type}>
+                          {type.charAt(0) + type.slice(1).toLowerCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject (if applicable)
                     </label>
                     <input
                       type="text"
-                      name="name"
-                      defaultValue={currentProgram.name}
-                      required
+                      name="subject"
+                      defaultValue={currentRequirement.subject || ""}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
 
-                  {currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Department
-                      </label>
-                      <div className="px-3 py-2 bg-gray-100 rounded-md text-gray-700">
-                        {currentUser.department?.name ||
-                          "No department assigned"}
-                      </div>
-                      <input
-                        type="hidden"
-                        name="departmentId"
-                        value={currentUser.department?.id || ""}
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Minimum Grade (if applicable)
+                    </label>
+                    <input
+                      type="text"
+                      name="minGrade"
+                      defaultValue={currentRequirement.minGrade || ""}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      defaultValue={currentRequirement.description}
+                      required
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
                   <div className="flex justify-end space-x-3 pt-4">
                     <button
                       type="button"
@@ -447,7 +498,7 @@ export default function ProgramManagement() {
                       type="submit"
                       className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      {currentProgram.id ? "Update" : "Create"}
+                      {currentRequirement.id ? "Update" : "Create"}
                     </button>
                   </div>
                 </div>
@@ -464,8 +515,8 @@ export default function ProgramManagement() {
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">Confirm Deletion</h2>
               <p className="mb-6">
-                Are you sure you want to delete this program? This will also
-                delete all associated requirements and cannot be undone.
+                Are you sure you want to delete this requirement? This action
+                cannot be undone.
               </p>
 
               <div className="flex justify-end space-x-3">
@@ -481,7 +532,7 @@ export default function ProgramManagement() {
                   <input
                     type="hidden"
                     name="id"
-                    value={programToDelete || ""}
+                    value={requirementToDelete || ""}
                   />
                   <button
                     type="submit"

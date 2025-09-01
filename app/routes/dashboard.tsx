@@ -1,11 +1,10 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
 import Header from "@/components/shared/Header";
 import Sidebar from "@/components/shared/Sidebar";
-import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -36,7 +35,6 @@ export default function DashboardLayout() {
         <div className="flex flex-col md:flex-row gap-8">
           <Sidebar user={{ ...user, name: user.name ?? "User" }} />
           <div className="flex-1">
-            <Breadcrumbs />
             <Outlet />
           </div>
         </div>

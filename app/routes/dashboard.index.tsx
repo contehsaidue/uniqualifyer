@@ -10,7 +10,7 @@ import { USER_ROLES } from "@/utils/constants";
 import StudentDashboard from "./dashboard.applicant";
 import DepartmentAdminDashboard from "./dashboard.admin";
 import SuperAdminDashboard from "./dashboard.super";
-import { getCurrentDateTime } from "@/utils/utils/getTimeBasedGreeting";
+import { getCurrentDateTime } from "~/utils/getTimeBasedGreeting";
 import {
   SunIcon,
   SparklesIcon,
@@ -18,6 +18,11 @@ import {
   CalendarIcon,
   ClockIcon,
 } from "lucide-react";
+import {
+  fetchDepartmentAdminAnalyticsData,
+  fetchStudentAnalyticsData,
+  fetchSuperAdminAnalyticsData,
+} from "~/utils/helperFunctions";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -35,7 +40,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("/auth/login");
   }
 
-  return { user };
+  let analytics = null;
+  let studentAnalytics = null;
+  let departmentAdminAnalytics = null;
+
+  if (user.role === USER_ROLES.SUPER_ADMIN) {
+    analytics = await fetchSuperAdminAnalyticsData();
+  } else if (user.role === USER_ROLES.STUDENT) {
+    studentAnalytics = await fetchStudentAnalyticsData(user.id);
+  } else if (user.role === USER_ROLES.DEPARTMENT_ADMINISTRATOR) {
+    departmentAdminAnalytics = await fetchDepartmentAdminAnalyticsData(user.id);
+  }
+
+  return { user, analytics, studentAnalytics, departmentAdminAnalytics };
 }
 
 export const meta: MetaFunction = () => {
@@ -46,8 +63,9 @@ export const meta: MetaFunction = () => {
 };
 
 export default function DashboardIndex() {
-  const { user } = useLoaderData<typeof loader>();
-
+  const { user, analytics, studentAnalytics, departmentAdminAnalytics } =
+    useLoaderData<typeof loader>();
+  console.log("User data in DashboardIndex:", user);
   const now = new Date();
   const hour = now.getHours();
   const { greeting, currentDate, currentTime } = getCurrentDateTime();
@@ -63,11 +81,16 @@ export default function DashboardIndex() {
   const renderDashboard = () => {
     switch (user.role) {
       case USER_ROLES.STUDENT:
-        return <StudentDashboard />;
+        return <StudentDashboard analytics={studentAnalytics} />;
       case USER_ROLES.DEPARTMENT_ADMINISTRATOR:
-        return <DepartmentAdminDashboard />;
+        return (
+          <DepartmentAdminDashboard
+            analytics={departmentAdminAnalytics}
+            user={user}
+          />
+        );
       case USER_ROLES.SUPER_ADMIN:
-        return <SuperAdminDashboard />;
+        return <SuperAdminDashboard analytics={analytics} />;
       default:
         return <div>No dashboard available for your role</div>;
     }

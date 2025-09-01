@@ -119,7 +119,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         name: user.name,
         email: user.email,
         role: user.role,
-        departmentId: user.departmentId,
+        departmentId: user.department?.id,
       },
     };
   } catch (error) {
@@ -209,18 +209,6 @@ export async function action({ request }: ActionFunctionArgs) {
         break;
       }
 
-      case "remove-admin": {
-        const adminId = formData.get("adminId") as string;
-
-        await prisma?.departmentAdministrator.delete({
-          where: {
-            userId: adminId,
-          },
-        });
-
-        return { success: true, message: "Admin removed successfully" };
-      }
-
       default:
         return new Response(JSON.stringify({ error: "Invalid action" }), {
           status: 400,
@@ -240,9 +228,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function DepartmentManagement() {
-  const { departments, universities, currentUser } =
-    useLoaderData<typeof loader>();
-
+  const loaderData = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -266,6 +252,20 @@ export default function DepartmentManagement() {
   } | null>(null);
   const submit = useSubmit();
 
+  // Handle case where loader returns an error response
+  if ("error" in loaderData) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-600">{loaderData.error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { departments, universities, currentUser } = loaderData;
+
   useEffect(() => {
     if (actionData?.success && actionData.message) {
       toast.success(actionData.message);
@@ -288,7 +288,7 @@ export default function DepartmentManagement() {
     setCurrentDepartment({
       name: "",
       code: "",
-      universityId: departments[0]?.universityId || "",
+      universityId: universities[0]?.id || "",
     });
     setIsModalOpen(true);
   };
@@ -535,33 +535,28 @@ export default function DepartmentManagement() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        SN.
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentAdmins.admins.length > 0 ? (
-                      currentAdmins.admins.map((admin) => (
+                      currentAdmins.admins.map((admin, index) => (
                         <tr key={admin.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {index + 1}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {admin.name}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {admin.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button className="text-blue-600 hover:text-blue-900 mr-4">
-                              Edit
-                            </button>
-                            <button className="text-red-600 hover:text-red-900">
-                              Remove
-                            </button>
                           </td>
                         </tr>
                       ))

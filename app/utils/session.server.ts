@@ -2,7 +2,6 @@ import { logoutUser } from "@/services/auth.service";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { Session, SessionData } from "@remix-run/node";
 
-// Configure your session storage
 const sessionSecret = process.env.SESSION_SECRET || "default-secret-please-change";
 if (!process.env.SESSION_SECRET) {
   console.warn("⚠️ No SESSION_SECRET set, using insecure default!");
@@ -10,7 +9,7 @@ if (!process.env.SESSION_SECRET) {
 
 const { getSession, commitSession, destroySession } = createCookieSessionStorage({
   cookie: {
-    name: "__session", // This is correct - double underscore is conventional
+    name: "__session", 
     secrets: [sessionSecret],
     sameSite: "lax",
     path: "/",
@@ -24,7 +23,7 @@ const { getSession, commitSession, destroySession } = createCookieSessionStorage
  * Get session from request headers
  */
 export async function getSessionFromRequest(request: Request): Promise<Session<SessionData>> {
-  const cookie = request.headers.get("Cookie"); // Only check "Cookie" header
+  const cookie = request.headers.get("Cookie"); 
   return getSession(cookie);
 }
 
@@ -125,5 +124,4 @@ export async function refreshSession({
   };
 }
 
-// Export base session functions
 export { getSession, commitSession, destroySession };

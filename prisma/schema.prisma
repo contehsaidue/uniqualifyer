@@ -27,6 +27,7 @@ model User {
   AuditLog                 AuditLog[]
   createdAt                DateTime                 @default(now())
   updatedAt                DateTime                 @updatedAt
+  Note                     Note[]
 
   @@map("users")
 }
@@ -47,7 +48,6 @@ model Student {
   userId         String          @unique
   user           User            @relation(fields: [userId], references: [id])
   applications   Application[]
-  documents      Document[]
   qualifications Qualification[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -76,6 +76,8 @@ model Qualification {
   subject   String
   grade     String
   verified  Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@map("qualifications")
 }
@@ -91,7 +93,6 @@ model University {
   id          String       @id @default(uuid())
   name        String
   slug        String       @unique
-  programs    Program[]
   departments Department[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -108,14 +109,15 @@ model Department {
   administrators DepartmentAdministrator[]
   createdAt      DateTime                  @default(now())
   updatedAt      DateTime                  @updatedAt
+  Program        Program[]
 
   @@map("departments")
 }
 
 model Program {
   id           String               @id @default(uuid())
-  universityId String
-  university   University           @relation(fields: [universityId], references: [id])
+  departmentId String
+  department   Department           @relation(fields: [departmentId], references: [id]) // Add this relation
   name         String
   requirements ProgramRequirement[]
   applications Application[]
@@ -154,7 +156,6 @@ model Application {
   student     Student           @relation(fields: [studentId], references: [id])
   program     Program           @relation(fields: [programId], references: [id])
   status      ApplicationStatus @default(PENDING)
-  documents   Document[]
   notes       Note[]
   submittedAt DateTime?
   createdAt   DateTime          @default(now())
@@ -172,36 +173,12 @@ enum ApplicationStatus {
   REJECTED
 }
 
-model Document {
-  id            String       @id @default(uuid())
-  studentId     String
-  applicationId String?
-  student       Student      @relation(fields: [studentId], references: [id])
-  application   Application? @relation(fields: [applicationId], references: [id])
-  type          DocumentType
-  url           String
-  verified      Boolean      @default(false)
-  verifiedBy    String?
-  verifiedAt    DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  @@map("documents")
-}
-
-enum DocumentType {
-  TRANSCRIPT
-  DIPLOMA
-  IDENTIFICATION
-  RECOMMENDATION
-  PROOF_OF_ENGLISH
-}
-
 model Note {
   id            String      @id @default(uuid())
   applicationId String
   application   Application @relation(fields: [applicationId], references: [id])
   authorId      String
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   content       String
   internalOnly  Boolean     @default(true)
   createdAt     DateTime    @default(now())

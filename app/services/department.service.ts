@@ -7,7 +7,19 @@ interface UserSession {
   email: string;
   role: UserRole;
   departmentId?: string;
+  universityId?: string;
   permissions?: any;
+  department?: {
+    id: string;
+    name: string;
+    code: string;
+    universityId?: string;
+  };
+  university?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface Department {
@@ -35,6 +47,7 @@ interface DepartmentWithRelations extends Department {
   university: {
     id: string;
     name: string;
+    slug: string;
   };
   administrators: {
     id: string;
@@ -43,7 +56,6 @@ interface DepartmentWithRelations extends Department {
   }[];
 }
 
-// Update the interfaces first
 interface DepartmentBase {
   id: string;
   name: string;
@@ -57,6 +69,7 @@ interface DepartmentWithUniversity extends DepartmentBase {
   university: {
     id: string;
     name: string;
+    slug: string;
   };
 }
 
@@ -85,6 +98,11 @@ export const createDepartment = async (
   currentUser: UserSession
 ): Promise<Department> => {
   verifyAdminPrivileges(currentUser);
+
+  // Only super admins can create departments
+  if (currentUser.role !== UserRole.SUPER_ADMIN) {
+    throw new Error('Unauthorized: Only super admins can create departments');
+  }
 
   // Validate code format (example: uppercase letters and numbers)
   if (!/^[A-Z0-9]+$/.test(input.code)) {
@@ -124,9 +142,7 @@ export const createDepartment = async (
     data: {
       name: input.name,
       code: input.code,
-      universityId: input.universityId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      universityId: input.universityId
     }
   });
 };
@@ -134,77 +150,107 @@ export const createDepartment = async (
 /**
  * Get all departments with optional relations
  */
-
 export const getDepartments = async (
   currentUser: UserSession,
   options?: {
     includeUniversity?: boolean;
     includeAdministrators?: boolean;
+    universityId?: string;
   }
 ): Promise<(DepartmentBase | DepartmentWithUniversity | DepartmentWithAdministrators | DepartmentWithRelations)[]> => {
   verifyAdminPrivileges(currentUser);
 
-  const whereClause = currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && currentUser.departmentId
-    ? { id: currentUser.departmentId }
-    : {};
+  let whereClause: any = {};
 
-  // Set defaults to true if not specified
+  // Department admins can only see their own department
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
+    if (!currentUser.departmentId) {
+      throw new Error('Department administrator must be assigned to a department');
+    }
+    whereClause.id = currentUser.departmentId;
+  }
+
+  // Filter by university if provided (for super admins)
+  if (options?.universityId && currentUser.role === UserRole.SUPER_ADMIN) {
+    whereClause.universityId = options.universityId;
+  }
+
   const includeUniversity = options?.includeUniversity ?? true;
   const includeAdministrators = options?.includeAdministrators ?? true;
 
-  const departments = await prisma.department.findMany({
-    where: whereClause,
-    include: {
-      university: includeUniversity ? {
-        select: {
-          id: true,
-          name: true,
-          slug: true
-        }
-      } : false,
-      administrators: includeAdministrators ? {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-              createdAt: true
+  // Use separate queries based on whether we need administrators
+  let departments;
+  if (includeAdministrators) {
+    // Query with administrators and user relation included
+    departments = await prisma.department.findMany({
+      where: whereClause,
+      include: {
+        university: includeUniversity,
+        administrators: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
             }
           }
-        }
-      } : false,
-    },
-    orderBy: {
-      name: 'asc'
-    }
-  });
+        },
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+  } else {
+    // Query without administrators
+    departments = await prisma.department.findMany({
+      where: whereClause,
+      include: {
+        university: includeUniversity,
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
+  }
+
+  // Type guard to check if department has administrators
+  const hasAdministrators = (dept: any): dept is { administrators: any[] } => {
+    return 'administrators' in dept && Array.isArray(dept.administrators);
+  };
 
   // Transform the data
-  const transformedDepartments = departments.map(dept => ({
-    id: dept.id,
-    universityId: dept.universityId,
-    name: dept.name,
-    code: dept.code,
-    createdAt: dept.createdAt,
-    updatedAt: dept.updatedAt,
-    university: includeUniversity ? {
-      id: dept.university?.id || '',
-      name: dept.university?.name || '',
-      slug: dept.university?.slug || ''
-    } : undefined,
-    administrators: includeAdministrators ? 
-      dept.administrators?.map(admin => ({
-        id: admin.user.id,
-        name: admin.user.name,
-        email: admin.user.email,
-        role: admin.user.role,
-      })) 
-      : undefined
-  }));
+  const transformedDepartments = departments.map(dept => {
+    const baseDepartment = {
+      id: dept.id,
+      universityId: dept.universityId,
+      name: dept.name,
+      code: dept.code,
+      createdAt: dept.createdAt,
+      updatedAt: dept.updatedAt,
+      university: includeUniversity && dept.university ? {
+        id: dept.university.id,
+        name: dept.university.name,
+        slug: dept.university.slug
+      } : undefined,
+    };
 
-  // Type the return value
+    if (includeAdministrators && hasAdministrators(dept)) {
+      return {
+        ...baseDepartment,
+        administrators: dept.administrators.map(admin => ({
+          id: admin.user.id,
+          name: admin.user.name || '',
+          email: admin.user.email
+        }))
+      };
+    }
+
+    return baseDepartment;
+  });
+
+  // Type the return value based on included relations
   if (includeUniversity && includeAdministrators) {
     return transformedDepartments as DepartmentWithRelations[];
   } else if (includeUniversity) {
@@ -215,26 +261,17 @@ export const getDepartments = async (
   return transformedDepartments as DepartmentBase[];
 };
 
-
 /**
  * Get department by ID with optional relations
  */
-
-type DepartmentWithOptions<T extends {
-  includeUniversity?: boolean;
-  includeAdministrators?: boolean;
-}> = DepartmentBase &
-  (T['includeUniversity'] extends true ? { university: { id: string; name: string } } : {}) &
-  (T['includeAdministrators'] extends true ? { administrators: { id: string; name: string; email: string }[] } : {});
-
-export const getDepartmentById = async <T extends {
-  includeUniversity?: boolean;
-  includeAdministrators?: boolean;
-}>(
+export const getDepartmentById = async (
   id: string,
   currentUser: UserSession,
-  options?: T
-): Promise<DepartmentWithOptions<T> | null> => {
+  options?: {
+    includeUniversity?: boolean;
+    includeAdministrators?: boolean;
+  }
+): Promise<DepartmentWithRelations | null> => {
   verifyAdminPrivileges(currentUser);
 
   // Department admins can only access their own department
@@ -242,22 +279,88 @@ export const getDepartmentById = async <T extends {
     throw new Error('Unauthorized: You can only access your own department');
   }
 
-  const department = await prisma.department.findUnique({
-    where: { id },
-    include: {
-      university: options?.includeUniversity ? {
-        select: {
-          id: true,
-          name: true
-        }
-      } : false,   
-    }
-  });
+  const includeUniversity = options?.includeUniversity ?? true;
+  const includeAdministrators = options?.includeAdministrators ?? true;
 
-  return department as DepartmentWithOptions<T> | null;
+  // Use separate queries based on whether we need administrators
+  let department;
+  if (includeAdministrators) {
+    // Query with administrators and user relation included
+    department = await prisma.department.findUnique({
+      where: { id },
+      include: {
+        university: includeUniversity,
+        administrators: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
+        },
+      }
+    });
+  } else {
+    // Query without administrators
+    department = await prisma.department.findUnique({
+      where: { id },
+      include: {
+        university: includeUniversity,
+      }
+    });
+  }
+
+  if (!department) {
+    return null;
+  }
+
+  // Type guard to check if department has administrators
+  const hasAdministrators = (dept: any): dept is { administrators: any[] } => {
+    return 'administrators' in dept && Array.isArray(dept.administrators);
+  };
+
+  // Check if university is included and available
+  if (includeUniversity && !department.university) {
+    throw new Error('University not found for department');
+  }
+
+  const baseDepartment = {
+    id: department.id,
+    universityId: department.universityId,
+    name: department.name,
+    code: department.code,
+    createdAt: department.createdAt,
+    updatedAt: department.updatedAt,
+    university: includeUniversity ? {
+      id: department.university!.id, // Use non-null assertion since we checked above
+      name: department.university!.name,
+      slug: department.university!.slug
+    } : {
+      id: '',
+      name: '',
+      slug: ''
+    },
+  };
+
+  if (includeAdministrators && hasAdministrators(department)) {
+    return {
+      ...baseDepartment,
+      administrators: department.administrators.map(admin => ({
+        id: admin.user.id,
+        name: admin.user.name || '',
+        email: admin.user.email
+      }))
+    };
+  }
+
+  return {
+    ...baseDepartment,
+    administrators: []
+  };
 };
-
-
 /**
  * Update department
  */
@@ -268,9 +371,9 @@ export const updateDepartment = async (
 ): Promise<Department> => {
   verifyAdminPrivileges(currentUser);
 
-  // Department admins can only update their own department
-  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR && currentUser.departmentId !== id) {
-    throw new Error('Unauthorized: You can only update your own department');
+  // Only super admins can update departments
+  if (currentUser.role !== UserRole.SUPER_ADMIN) {
+    throw new Error('Unauthorized: Only super admins can update departments');
   }
 
   if (input.code && !/^[A-Z0-9]+$/.test(input.code)) {
@@ -291,12 +394,21 @@ export const updateDepartment = async (
     }
   }
 
+  // If changing university, verify the new university exists
+  if (input.universityId) {
+    const universityExists = await prisma.university.findUnique({
+      where: { id: input.universityId }
+    });
+
+    if (!universityExists) {
+      throw new Error('University not found');
+    }
+  }
+
   return await prisma.department.update({
     where: { id },
     data: {
-      name: input.name,
-      code: input.code,
-      universityId: input.universityId,
+      ...input,
       updatedAt: new Date()
     }
   });
@@ -311,23 +423,39 @@ export const deleteDepartment = async (
 ): Promise<void> => {
   verifyAdminPrivileges(currentUser);
 
-  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
-    throw new Error('Unauthorized: Department admins cannot delete departments');
+  // Only super admins can delete departments
+  if (currentUser.role !== UserRole.SUPER_ADMIN) {
+    throw new Error('Unauthorized: Only super admins can delete departments');
   }
 
+  // Check if department has any programs
+  const programsCount = await prisma.program.count({
+    where: { departmentId: id }
+  });
+
+  if (programsCount > 0) {
+    throw new Error('Cannot delete department with existing programs');
+  }
+
+  // Check if department has any administrators
+  const adminCount = await prisma.departmentAdministrator.count({
+    where: { departmentId: id }
+  });
+
   // Use transaction to delete all related records
-  await prisma.$transaction([
-    // Delete all department administrators
-    prisma.departmentAdministrator.deleteMany({
-      where: {
-        departmentId: id
-      }
-    }),
+  await prisma.$transaction(async (tx) => {
+    // Delete all department administrators if they exist
+    if (adminCount > 0) {
+      await tx.departmentAdministrator.deleteMany({
+        where: { departmentId: id }
+      });
+    }
+    
     // Delete the department
-    prisma.department.delete({
+    await tx.department.delete({
       where: { id }
-    })
-  ]);
+    });
+  });
 };
 
 /**
@@ -340,6 +468,13 @@ export const searchDepartments = async (
   limit: number = 10
 ): Promise<Department[]> => {
   verifyAdminPrivileges(currentUser);
+
+  // Department admins can only search within their university
+  if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
+    if (currentUser.universityId !== universityId) {
+      throw new Error('Unauthorized: You can only search departments in your university');
+    }
+  }
 
   return await prisma.department.findMany({
     where: {
@@ -370,7 +505,7 @@ export const getDepartmentAdministrators = async (
     throw new Error('Unauthorized: You can only access your own department');
   }
 
-  return await prisma.departmentAdministrator.findMany({
+  const administrators = await prisma.departmentAdministrator.findMany({
     where: { departmentId },
     include: {
       user: {
@@ -388,4 +523,11 @@ export const getDepartmentAdministrators = async (
       }
     }
   });
+
+  return administrators.map(admin => ({
+    id: admin.user.id,
+    name: admin.user.name || '',
+    email: admin.user.email,
+    role: admin.user.role
+  }));
 };

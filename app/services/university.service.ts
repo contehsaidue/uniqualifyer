@@ -29,7 +29,7 @@ interface UpdateUniversityInput {
 }
 
 interface UniversityWithRelations extends University {
-  programs: {
+  programs?: {
     id: string;
     name: string;
   }[];
@@ -97,30 +97,25 @@ export const createUniversity = async (
 export const getUniversities = async (
   currentUser: UserSession,
   options?: {
-    includePrograms?: boolean;
     includeDepartments?: boolean;
   }
-): Promise<UniversityWithRelations[]> => {
-  verifyAdminPrivileges(currentUser);
+) => {
+  // Verify admin privileges if needed
+  if (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.DEPARTMENT_ADMINISTRATOR) {
+    throw new Error('Unauthorized: Only admins can access universities');
+  }
+
+  const includeDepartments = options?.includeDepartments ?? false;
 
   return await prisma.university.findMany({
     include: {
-      programs: options?.includePrograms ? {
+      departments: includeDepartments ? {
         select: {
           id: true,
-          name: true
-        },
-        orderBy: {
-          name: 'asc'
-        }
-      } : false,
-      departments: options?.includeDepartments ? {
-        select: {
-          id: true,
-          name: true
-        },
-        orderBy: {
-          name: 'asc'
+          name: true,
+          code: true,
+          createdAt: true,
+          updatedAt: true
         }
       } : false,
     },
@@ -137,31 +132,26 @@ export const getUniversityById = async (
   id: string,
   currentUser: UserSession,
   options?: {
-    includePrograms?: boolean;
     includeDepartments?: boolean;
   }
-): Promise<UniversityWithRelations | null> => {
-  verifyAdminPrivileges(currentUser);
+) => {
+  // Verify admin privileges if needed
+  if (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.DEPARTMENT_ADMINISTRATOR) {
+    throw new Error('Unauthorized: Only admins can access universities');
+  }
+
+  const includeDepartments = options?.includeDepartments ?? false;
 
   return await prisma.university.findUnique({
     where: { id },
     include: {
-      programs: options?.includePrograms ? {
+      departments: includeDepartments ? {
         select: {
           id: true,
-          name: true
-        },
-        orderBy: {
-          name: 'asc'
-        }
-      } : false,
-      departments: options?.includeDepartments ? {
-        select: {
-          id: true,
-          name: true
-        },
-        orderBy: {
-          name: 'asc'
+          name: true,
+          code: true,
+          createdAt: true,
+          updatedAt: true
         }
       } : false,
     }
@@ -175,28 +165,24 @@ export const getUniversityBySlug = async (
   slug: string,
   currentUser: UserSession,
   options?: {
-    includePrograms?: boolean;
     includeDepartments?: boolean;
   }
 ): Promise<UniversityWithRelations | null> => {
   verifyAdminPrivileges(currentUser);
 
+  
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    throw new Error('Slug can only contain lowercase letters, numbers, and hyphens');
+  }
+
   return await prisma.university.findUnique({
     where: { slug },
     include: {
-      programs: options?.includePrograms ? {
-        select: {
-          id: true,
-          name: true
-        },
-        orderBy: {
-          name: 'asc'
-        }
-      } : false,
       departments: options?.includeDepartments ? {
         select: {
           id: true,
-          name: true
+          name: true,
+          code: true
         },
         orderBy: {
           name: 'asc'
@@ -250,37 +236,24 @@ export const updateUniversity = async (
 export const deleteUniversity = async (
   id: string,
   currentUser: UserSession
-): Promise<void> => {
-  verifyAdminPrivileges(currentUser);
+) => {
+  // Only super admins can delete universities
+  if (currentUser.role !== UserRole.SUPER_ADMIN) {
+    throw new Error('Unauthorized: Only super admins can delete universities');
+  }
 
-  // Use transaction to delete all related records
-  await prisma.$transaction([
-    // Delete all programs and their requirements
-    prisma.programRequirement.deleteMany({
-      where: {
-        program: {
-          universityId: id
-        }
-      }
-    }),
-    prisma.program.deleteMany({
-      where: {
-        universityId: id
-      }
-    }),
-    // Delete all departments
-    prisma.department.deleteMany({
-      where: {
-        universityId: id
-      }
-    }),
-    // Finally delete the university
-    prisma.university.delete({
-      where: { id }
-    })
-  ]);
+  const departmentsCount = await prisma.department.count({
+    where: { universityId: id }
+  });
+
+  if (departmentsCount > 0) {
+    throw new Error('Cannot delete university with existing departments');
+  }
+
+  return await prisma.university.delete({
+    where: { id }
+  });
 };
-
 /**
  * Search universities by name or slug
  */

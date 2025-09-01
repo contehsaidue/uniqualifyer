@@ -1,148 +1,107 @@
-import { Users, Search, CheckCircle, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
 import { Link } from "@remix-run/react";
+import React from "react";
 
 export function HowItWorks() {
   const steps = [
     {
-      step: "1",
-      icon: <Users className="w-8 h-8" />,
-      title: "Create Your Profile",
+      icon: "📝",
+      title: "Add Your Qualifications",
       description:
-        "Enter your academic details and exam results to get started",
-      color: "from-indigo-500 to-blue-500",
+        "Input your academic records, test scores, and achievements with our intuitive form",
     },
     {
-      step: "2",
-      icon: <Search className="w-8 h-8" />,
-      title: "Search Courses",
-      description: "Select your desired courses or universities",
-      color: "from-blue-500 to-purple-500",
+      icon: "🔍",
+      title: "Smart Matching Algorithm",
+      description:
+        "Our AI analyzes thousands of programs to find your perfect matches based on your profile",
     },
     {
-      step: "3",
-      icon: <CheckCircle className="w-8 h-8" />,
-      title: "Get Matches",
-      description: "Receive instant eligibility results with AI accuracy",
-      color: "from-purple-500 to-pink-500",
+      icon: "🎯",
+      title: "Get Personalized Matches",
+      description:
+        "Receive tailored program recommendations with compatibility scores and insights",
     },
   ];
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const item: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut" as const,
-      },
-    },
-  };
-
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section
+      className="relative py-20 overflow-hidden"
+      aria-labelledby="how-it-works-heading"
+    >
+      {/* Background elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-blue-50 to-indigo-50 -z-10"></div>
+      <div className="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full opacity-20 blur-3xl -z-10"></div>
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-indigo-200 rounded-full opacity-20 blur-3xl -z-10"></div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            How{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-              UniQualifyer
-            </span>{" "}
-            Works
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 mb-6">
+            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+            How it works
+          </div>
+          <h2
+            id="how-it-works-heading"
+            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+          >
+            Find Your Perfect Program
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover your perfect university match in just three simple steps
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Our intelligent platform matches your qualifications with the best
+            educational opportunities in three simple steps
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 relative"
-        >
-          {/* Connecting line for desktop */}
-          <div className="hidden md:block absolute top-16 left-1/6 right-1/6 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500 z-0"></div>
-
+        <div className="grid md:grid-cols-3 gap-8 relative">
           {steps.map((step, index) => (
-            <motion.div
-              key={step.step}
-              variants={item}
-              className="relative z-10"
-            >
-              <motion.div
-                whileHover={{ y: -10 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col items-center text-center border border-gray-100"
-              >
-                <div
-                  className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-gradient-to-r ${step.color} shadow-lg`}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {step.icon}
-                  </motion.div>
+            <div key={index} className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-sm transform group-hover:scale-105 group-hover:shadow-lg transition-all duration-300 -z-10"></div>
+
+              <div className="h-full p-8 flex flex-col items-center text-center">
+                {/* Step number */}
+                <div className="w-12 h-12 rounded-full bg-white border-2 border-blue-100 flex items-center justify-center text-blue-600 font-semibold mb-6 shadow-sm">
+                  {index + 1}
                 </div>
 
-                <div className="mb-4 flex items-center justify-center">
-                  <span className="bg-gray-100 text-gray-800 font-bold rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                    {step.step}
-                  </span>
-                  <h3 className="text-xl font-bold text-gray-900">
+                {/* Icon container */}
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  {step.icon}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
                     {step.title}
                   </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
-
-                <p className="text-gray-600 mb-6 flex-grow">
-                  {step.description}
-                </p>
-
-                {index < steps.length - 1 && (
-                  <div className="md:hidden flex items-center justify-center text-blue-500 mt-4">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
-                )}
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          viewport={{ once: true }}
-          className="mt-16 text-center"
-        >
+        {/* CTA Button */}
+        <div className="text-center mt-16">
           <Link
             to="/auth/register"
-            className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
+            className="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
           >
-            Get Started Now
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            Get Started Today
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 ml-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

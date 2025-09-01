@@ -382,7 +382,7 @@ export default function Users() {
                 aria-label="Delete"
               >
                 <Trash size={16} />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
+                <span className="sr-only sm:not-sr-only sm:ml- mx-auto"></span>
               </button>
 
               <Form method="post">

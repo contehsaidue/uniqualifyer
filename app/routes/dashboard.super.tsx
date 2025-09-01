@@ -1,173 +1,189 @@
 import { StatCard } from "@/components/shared/StatCard";
+import { Building2, Users, BookOpen } from "lucide-react";
+
 import {
-  Building2,
-  Users,
-  BookOpen,
-  BarChart,
-  FileText,
-  Bell,
-  GraduationCap,
-  Shield,
-  UserCog,
-} from "lucide-react";
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
-type AdminStats = {
-  totalUniversities: number;
-  activeUniversities: number;
-  totalDepartments: number;
-  departmentsPerUniversity: number;
-  totalUsers: number;
-  superAdmins: number;
-  departmentAdmins: number;
-  recentActivity: Array<{ id: number; text: string; time: string }>;
-  topUniversities: Array<{ name: string; departments: number }>;
-};
+interface SuperAdminDashboardProps {
+  analytics: any;
+}
 
-export default function SuperAdminDashboard() {
-  // Sample data - replace with actual data from your API
-  const stats: AdminStats = {
-    totalUniversities: 42,
-    activeUniversities: 38,
-    totalDepartments: 287,
-    departmentsPerUniversity: 6.8,
-    totalUsers: 5243,
-    superAdmins: 12,
-    departmentAdmins: 156,
-    recentActivity: [
-      {
-        id: 1,
-        text: "New university 'Tech Institute' registered with 8 departments",
-        time: "2h ago",
-      },
-      {
-        id: 2,
-        text: "Department 'Computer Science' added to Stanford University",
-        time: "1d ago",
-      },
-      {
-        id: 3,
-        text: "5 new department administrators onboarded",
-        time: "2d ago",
-      },
-      {
-        id: 4,
-        text: "System maintenance completed - v2.3.0 deployed",
-        time: "3d ago",
-      },
-    ],
-    topUniversities: [
-      { name: "Stanford University", departments: 12 },
-      { name: "MIT", departments: 10 },
-      { name: "Harvard University", departments: 9 },
-      { name: "UC Berkeley", departments: 8 },
-    ],
-  };
+// Colors for charts
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884D8",
+  "#82CA9D",
+];
+
+export default function SuperAdminDashboard({
+  analytics,
+}: SuperAdminDashboardProps) {
+  console.log("Analytics data:", analytics);
+
+  // Add proper error handling for undefined analytics
+  if (!analytics) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          System Analytics
+        </h1>
+        <p className="text-gray-600 mb-6 md:mb-8">Loading analytics data...</p>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Loading data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract analytics data from the nested structure
+  const analyticsData = analytics;
 
   return (
-    <>
-      {/* Primary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <p className="text-gray-600 mb-6 md:mb-8">
+        Overview of universities, departments, and users analytics
+      </p>
+
+      {/* University Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <StatCard
-          icon={<Building2 className="h-6 w-6 text-blue-600" />}
+          icon={<Building2 className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />}
           title="Total Universities"
-          value={stats.totalUniversities}
-          change={`${stats.activeUniversities} active`}
+          value={analyticsData.totalUniversities}
+          change={`${analyticsData.activeUniversities} with departments`}
         />
         <StatCard
-          icon={<BookOpen className="h-6 w-6 text-purple-600" />}
+          icon={<BookOpen className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />}
           title="Total Departments"
-          value={stats.totalDepartments}
-          change={`Avg ${stats.departmentsPerUniversity.toFixed(
-            1
-          )} per university`}
+          value={analyticsData.totalDepartments}
+          change={`${analyticsData.departmentsPerUniversity} avg per university`}
         />
         <StatCard
-          icon={<Users className="h-6 w-6 text-green-600" />}
+          icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-indigo-600" />}
           title="Total Users"
-          value={stats.totalUsers.toLocaleString()}
-          change="Last 30 days"
-        />
-        <StatCard
-          icon={<Shield className="h-6 w-6 text-amber-600" />}
-          title="Administrators"
-          value={stats.superAdmins + stats.departmentAdmins}
-          change={`${stats.superAdmins} super, ${stats.departmentAdmins} dept`}
+          value={analyticsData.totalUsers}
+          change="All platform users"
         />
       </div>
 
-      {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* User Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
         <StatCard
-          icon={<UserCog className="h-6 w-6 text-indigo-600" />}
+          icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-amber-600" />}
+          title="Super Admins"
+          value={analyticsData.superAdmins}
+          change="System administrators"
+        />
+        <StatCard
+          icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-teal-600" />}
           title="Department Admins"
-          value={stats.departmentAdmins}
-          change="5 new this month"
+          value={analyticsData.departmentAdmins}
+          change="University administrators"
         />
         <StatCard
-          icon={<GraduationCap className="h-6 w-6 text-teal-600" />}
-          title="Top Universities"
-          value={stats.topUniversities.length}
-          change="By department count"
-        />
-        <StatCard
-          icon={<BarChart className="h-6 w-6 text-rose-600" />}
-          title="Growth Rate"
-          value="+18%"
-          change="Last quarter"
+          icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-rose-600" />}
+          title="Students"
+          value={analyticsData.students}
+          change="Platform learners"
         />
       </div>
 
-      {/* Top Universities */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Top Universities by Departments
-        </h3>
-        <div className="space-y-3">
-          {stats.topUniversities.map((uni, index) => (
-            <div key={uni.name} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-gray-500 w-6">{index + 1}.</span>
-                <span className="font-medium">{uni.name}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-gray-600 mr-2">
-                  {uni.departments} depts
-                </span>
-                <div
-                  className="h-2 bg-blue-100 rounded-full"
-                  style={{ width: `${uni.departments * 8}px` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+        {/* User Distribution Chart */}
+        <div className="bg-white shadow rounded-lg p-4 md:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            User Distribution
+          </h3>
+          <div className="h-64 md:h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={analyticsData.userDistributionData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }: any) =>
+                    `${name}: ${(percent * 100)?.toFixed(0)}%`
+                  }
+                >
+                  {analyticsData.userDistributionData?.map(
+                    (entry: any, index: any) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    )
+                  )}
+                </Pie>
+                <Tooltip formatter={(value) => [`${value} users`, ""]} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Department Distribution Chart */}
+        <div className="bg-white shadow rounded-lg p-4 md:p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Top Universities by Department Count
+          </h3>
+          <div className="h-64 md:h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsBarChart
+                data={analyticsData.universityStatsData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="departments" fill="#8884d8" name="Departments" />
+              </RechartsBarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="border-t border-gray-200 pt-6">
+      {/* University Stats Detailed Chart */}
+      <div className="bg-white shadow rounded-lg p-4 md:p-6 mb-6 md:mb-8">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          System Activity
+          University Statistics (Departments and Users)
         </h3>
-        <div className="space-y-4">
-          {stats.recentActivity.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-start pb-4 last:pb-0 border-b border-gray-100 last:border-0"
+        <div className="h-64 md:h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsBarChart
+              data={analyticsData.universityStatsData}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
-              <div className="bg-indigo-100 p-2 rounded-lg mr-4">
-                <Bell className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-800 font-medium">{item.text}</p>
-                <p className="text-sm text-gray-500 mt-1">{item.time}</p>
-              </div>
-              <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium whitespace-nowrap">
-                View
-              </button>
-            </div>
-          ))}
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="departments" fill="#0088FE" name="Departments" />
+              <Bar dataKey="users" fill="#00C49F" name="Users" />
+            </RechartsBarChart>
+          </ResponsiveContainer>
         </div>
       </div>
-    </>
+    </div>
   );
 }
