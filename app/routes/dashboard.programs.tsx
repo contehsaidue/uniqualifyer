@@ -28,6 +28,7 @@ import {
   updateProgram,
   deleteProgram,
 } from "@/services/program.service";
+import { useRevalidator } from "@remix-run/react";
 
 interface ActionData {
   error?: string;
@@ -209,6 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function ProgramManagement() {
   const { programs, currentUser } = useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
   const actionData = useActionData<ActionData>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -223,6 +225,7 @@ export default function ProgramManagement() {
 
   useEffect(() => {
     if (actionData?.success && actionData.message) {
+      revalidate();
       toast.success(actionData.message);
     } else if (actionData?.error) {
       toast.error(actionData.error);

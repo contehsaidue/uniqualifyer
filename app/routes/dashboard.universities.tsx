@@ -26,6 +26,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { GenericTable } from "@/components/shared/GenericTable";
+import { useRevalidator } from "@remix-run/react";
 
 interface ActionData {
   error?: string;
@@ -209,6 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function UniversityManagement() {
   const { universities, currentUser } = useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
   const actionData = useActionData<ActionData>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -225,6 +227,7 @@ export default function UniversityManagement() {
 
   useEffect(() => {
     if (actionData?.success && actionData.message) {
+      revalidate();
       toast.success(actionData.message);
       // Close modals on success
       if (isModalOpen) setIsModalOpen(false);
@@ -232,7 +235,7 @@ export default function UniversityManagement() {
     } else if (actionData?.error) {
       toast.error(actionData.error);
     }
-  }, [actionData, isModalOpen, isDeleteModalOpen]);
+  }, [actionData]);
 
   const openEditModal = (university: University) => {
     setCurrentUniversity({

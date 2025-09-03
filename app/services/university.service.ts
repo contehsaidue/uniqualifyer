@@ -14,6 +14,7 @@ interface University {
   id: string;
   name: string;
   slug: string;
+  location: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,11 +22,13 @@ interface University {
 interface CreateUniversityInput {
   name: string;
   slug: string;
+   location: string;
 }
 
 interface UpdateUniversityInput {
   name?: string;
   slug?: string;
+   location?: string;
 }
 
 interface UniversityWithRelations extends University {
@@ -85,6 +88,7 @@ export const createUniversity = async (
     data: {
       name: input.name,
       slug: input.slug,
+      location: input.location,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -225,6 +229,7 @@ export const updateUniversity = async (
     data: {
       name: input.name,
       slug: input.slug,
+      location: input.location,
       updatedAt: new Date()
     }
   });

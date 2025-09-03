@@ -4,7 +4,6 @@ import {
   useLoaderData,
   useActionData,
   Form,
-  useNavigate,
   useSubmit,
 } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
@@ -25,7 +24,6 @@ import {
   Edit,
   Trash,
   User,
-  Settings,
   Key,
   MailCheckIcon,
   UserCheckIcon,
@@ -33,6 +31,7 @@ import {
 } from "lucide-react";
 import { USER_ROLES } from "@/utils/constants";
 import { toast } from "sonner";
+import { useRevalidator } from "@remix-run/react";
 
 interface ActionData {
   error?: string;
@@ -244,6 +243,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Users() {
   const { adminUsers, departments, currentUser } =
     useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
   const actionData = useActionData<ActionData>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -271,6 +271,7 @@ export default function Users() {
 
   useEffect(() => {
     if (actionData?.success && actionData.message) {
+      revalidate();
       toast.success(actionData.message);
     } else if (actionData?.error) {
       toast.error(actionData.error);

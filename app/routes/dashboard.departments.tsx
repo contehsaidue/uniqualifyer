@@ -18,6 +18,7 @@ import {
   updateDepartment,
 } from "@/services/department.service";
 import { toast } from "sonner";
+import { useRevalidator } from "@remix-run/react";
 import {
   ArrowRightCircle,
   Edit,
@@ -229,6 +230,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function DepartmentManagement() {
   const loaderData = useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
   const actionData = useActionData<typeof action>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -268,6 +270,7 @@ export default function DepartmentManagement() {
 
   useEffect(() => {
     if (actionData?.success && actionData.message) {
+      revalidate();
       toast.success(actionData.message);
     } else if (actionData?.error) {
       toast.error(actionData.error);
