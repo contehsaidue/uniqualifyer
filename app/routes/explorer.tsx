@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import {
   Building2,
@@ -17,7 +17,6 @@ import {
   Award,
   ArrowRight,
   ArrowLeft,
-  Home,
 } from "lucide-react";
 
 import {
@@ -25,6 +24,7 @@ import {
   getDepartments,
   getPrograms,
 } from "@/utils/models/data.service";
+import { generateUniversityLogo } from "~/utils/logo-generator";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -34,17 +34,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getPrograms(),
     ]);
 
-    // Transform the data to match your interface
-    const transformedData = {
-      universities: universities.map((uni) => ({
+    // Transform universities with generated logos - ONLY ONCE
+    const universitiesWithLogos = universities.map((uni) => {
+      const logoUrl = generateUniversityLogo(uni.name, uni.slug);
+
+      return {
         id: uni.id,
         name: uni.name,
         slug: uni.slug,
-        location: "Various locations", // Default value
-        rating: 4.0 + Math.random(), // Random rating between 4.0-5.0
-        description: `${uni.name} is a leading institution with ${uni.departments.length} departments.`,
-        imageUrl: `https://source.unsplash.com/random/300x200?university&${uni.id}`,
-      })),
+        location: uni.location || "Various locations", // Use actual location if available
+        rating: 4.0 + Math.random(),
+        description: `${uni.name} is a leading institution with ${
+          uni.departments?.length || 0
+        } departments.`,
+        imageUrl: logoUrl, // Use the generated logo
+        studentCount: Math.floor(Math.random() * 20000) + 5000,
+        established: Math.floor(Math.random() * 200) + 1820,
+      };
+    });
+
+    const transformedData = {
+      universities: universitiesWithLogos, // Use the transformed universities
       departments: departments.map((dept) => ({
         id: dept.id,
         name: dept.name,
@@ -93,6 +103,8 @@ interface University {
   rating: number;
   imageUrl?: string;
   description: string;
+  studentCount?: number;
+  established?: number;
 }
 
 interface Department {
@@ -134,6 +146,7 @@ export default function UniversityExplorer() {
   const [activeTab, setActiveTab] = useState<
     "universities" | "departments" | "programs"
   >("universities");
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<SidebarFilters>({
     search: "",
     university: "",
@@ -190,9 +203,7 @@ export default function UniversityExplorer() {
   }, []);
 
   const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(
-      (value) => value !== "" && value !== 0 && value !== false
-    );
+    return Object.values(filters).some((value) => value !== "" && value !== 0);
   }, [filters]);
 
   // Get unique universities for filter dropdown
@@ -248,24 +259,24 @@ export default function UniversityExplorer() {
               find your ideal academic path
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/universities"
-                className="bg-white  text-blue-900 border-2 border-white  px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors flex items-center justify-center"
+              <button
+                onClick={() => navigate("/universities")}
+                className="bg-white text-blue-900 border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center"
               >
                 View Universities <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link
-                to="/departments"
+              </button>
+              <button
+                onClick={() => navigate("/departments")}
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors"
               >
                 View Departments
-              </Link>
-              <Link
-                to="/programs"
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 hover:text-blue-900 transition-colors flex items-center justify-center"
+              </button>
+              <button
+                onClick={() => navigate("/programs")}
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors flex items-center justify-center"
               >
                 Browse Programs
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -568,28 +579,28 @@ export default function UniversityExplorer() {
               {/* Empty State */}
               {(activeTab === "universities" &&
                 filteredUniversities.length === 0) ||
-                (activeTab === "departments" &&
-                  filteredDepartments.length === 0) ||
-                (activeTab === "programs" && filteredPrograms.length === 0 && (
-                  <div className="text-center py-12">
-                    <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No {activeTab} found
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Try adjusting your search criteria or browse all{" "}
-                      {activeTab}.
-                    </p>
-                    {hasActiveFilters && (
-                      <button
-                        onClick={clearFilters}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        Clear all filters
-                      </button>
-                    )}
-                  </div>
-                ))}
+              (activeTab === "departments" &&
+                filteredDepartments.length === 0) ||
+              (activeTab === "programs" && filteredPrograms.length === 0) ? (
+                <div className="text-center py-12">
+                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No {activeTab} found
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Try adjusting your search criteria or browse all {activeTab}
+                    .
+                  </p>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Clear all filters
+                    </button>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

@@ -8,7 +8,6 @@ import {
   MapPin,
   Star,
   ChevronRight,
-  ChevronDown,
   Filter,
   X,
   ExternalLink,
@@ -126,19 +125,6 @@ export function UniversityExplorer({ data }: { data: HomepageData }) {
     });
   }, []);
 
-  const renderStars = useCallback((rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating)
-            ? "text-yellow-400 fill-yellow-400"
-            : "text-gray-300"
-        }`}
-      />
-    ));
-  }, []);
-
   const hasActiveFilters = useMemo(() => {
     return Object.values(filters).some(
       (value) => value !== "" && value !== 0 && value !== false
@@ -213,7 +199,7 @@ export function UniversityExplorer({ data }: { data: HomepageData }) {
             </div>
 
             {sidebarOpen && (
-              <div className="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="p-5 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {/* Search */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

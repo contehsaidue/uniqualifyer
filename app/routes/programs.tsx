@@ -9,6 +9,7 @@ import {
   Building2,
   Award,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { getPrograms } from "@/utils/models/data.service";
 
@@ -23,23 +24,34 @@ export default function ProgramsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center mb-4">
-            <Link
-              to="/explorer"
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 mr-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Explorer
-            </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Link
+          to="/explorer"
+          className="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Explorer
+        </Link>
+      </div>
+
+      {/* Hero Section with Background Image */}
+      <div className="relative bg-gradient-to-r from-blue-900 to-purple-800 text-white">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')",
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              Discover programs
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+              Explore thousands of programs to find your ideal academic path
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Academic Programs
-          </h1>
-          <p className="text-gray-600">
-            Browse all available academic programs across our universities
-          </p>
         </div>
       </div>
 

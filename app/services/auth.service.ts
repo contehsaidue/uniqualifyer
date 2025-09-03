@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { generateTokens, verifyToken } from '@/utils/token.server'
+import { UserRole } from '@prisma/client';
 
 interface UserSession {
   id: string;
@@ -92,17 +93,24 @@ async function getUserWithRoleData(userId: string, role: string): Promise<UserSe
 export const registerUser = async (
   name: string, 
   email: string, 
-  password: string,
+  password: string
 ): Promise<AuthResponse> => {
-  // Hash the password
   const hashedPassword = await bcrypt.hash(password, 12);
   
-  // Create the user in database
+  const userData = {
+    name,
+    email,
+    password: hashedPassword,
+    role: UserRole.STUDENT, 
+    student: {
+      create: {} 
+    }
+  };
+
   const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
+    data: userData,
+    include: {
+      student: true, 
     }
   });
 
@@ -116,7 +124,7 @@ export const registerUser = async (
     }
   });
 
-  // Get full user data with role information
+  // Get full user data with student information
   const userWithRoleData = await getUserWithRoleData(user.id, user.role);
 
   return {

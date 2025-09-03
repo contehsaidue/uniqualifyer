@@ -8,6 +8,7 @@ export function Toaster() {
       position="bottom-right"
       richColors
       closeButton
+      duration={4000}
       toastOptions={{
         classNames: {
           toast: "group toast",

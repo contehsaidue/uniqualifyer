@@ -25,10 +25,12 @@ async function seedDatabase() {
         {
           name: 'Fourah Bay College',
           slug: 'fbc-usl',
+          location: 'Freetown',
         },
         {
           name: 'Njala University',
           slug: 'njala-university',
+          location: 'Bo',
         },
       ],
       skipDuplicates: true,

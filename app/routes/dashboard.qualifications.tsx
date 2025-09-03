@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { redirect, json } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import {
   useLoaderData,
   useActionData,
@@ -234,10 +234,6 @@ export default function StudentQualificationManagement() {
   useEffect(() => {
     if (actionData?.success && actionData.message) {
       toast.success(actionData.message);
-      // Refresh the page to get updated data
-      if (actionData.qualification) {
-        window.location.reload();
-      }
     } else if (actionData?.error) {
       toast.error(actionData.error);
     }

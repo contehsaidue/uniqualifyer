@@ -250,34 +250,37 @@ export default function DepartmentAdminApplicationManagement() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const submit = useSubmit();
 
+  // For getDetails action only
   useEffect(() => {
-    if (actionData?.success) {
-      if (actionData.message) {
-        toast.success(actionData.message);
-      }
+    if (
+      actionData?.success &&
+      actionData.application &&
+      navigation.formData?.get("_action") === "getDetails"
+    ) {
+      setCurrentApplication(actionData.application);
+      setIsDetailsModalOpen(true);
+    }
+  }, [actionData, navigation.formData]);
 
-      // Check if we have application data from getDetails action
-      if (
-        actionData.application &&
-        navigation.formData?.get("_action") === "getDetails"
-      ) {
-        setCurrentApplication(actionData.application);
-        setIsDetailsModalOpen(true);
-      }
-
-      // For status updates, close the modal and refresh
-      if (
-        navigation.formData?.get("_action") === "updateStatus" &&
-        isStatusModalOpen
-      ) {
+  // For updateStatus action only
+  useEffect(() => {
+    if (
+      actionData?.success &&
+      navigation.formData?.get("_action") === "updateStatus"
+    ) {
+      toast.success(actionData.message);
+      if (isStatusModalOpen) {
         setIsStatusModalOpen(false);
-        // Refresh the page to get updated data
-        window.location.reload();
       }
-    } else if (actionData?.error) {
+    }
+  }, [actionData]);
+
+  // For errors
+  useEffect(() => {
+    if (actionData?.error) {
       toast.error(actionData.error);
     }
-  }, [actionData, isStatusModalOpen, navigation.formData]);
+  }, [actionData]);
 
   const openDetailsModal = async (applicationId: string) => {
     const formData = new FormData();
@@ -438,7 +441,7 @@ export default function DepartmentAdminApplicationManagement() {
     {
       id: "actions",
       cell: ({ row }: { row: { original: Application } }) => (
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => openDetailsModal(row.original.id)}
             className="p-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold flex items-center justify-center rounded"
@@ -463,7 +466,6 @@ export default function DepartmentAdminApplicationManagement() {
           </select>
         </div>
       ),
-      header: "Action",
     },
   ];
 
@@ -487,6 +489,25 @@ export default function DepartmentAdminApplicationManagement() {
           onSubmit={handleSearch}
           className="flex flex-col md:flex-row gap-4"
         >
+          <div className="flex-1">
+            <label htmlFor="search" className="sr-only">
+              Search applications
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                defaultValue={searchQuery}
+                placeholder="Search by student name or email..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
           <div className="w-full md:w-48">
             <label htmlFor="status" className="sr-only">
               Filter by status

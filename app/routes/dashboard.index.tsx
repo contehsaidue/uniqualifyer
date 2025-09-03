@@ -29,6 +29,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const refreshToken = session.get("refreshToken");
 
   const user = await getUserBySession(refreshToken);
+  console.log("Signedin user details...", user);
   if (!user) {
     if (refreshToken) {
       throw redirect("/auth/login", {

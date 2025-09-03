@@ -28,6 +28,7 @@ model User {
   createdAt                DateTime                 @default(now())
   updatedAt                DateTime                 @updatedAt
   Note                     Note[]
+  RecommendationCache      RecommendationCache[]
 
   @@map("users")
 }
@@ -93,6 +94,7 @@ model University {
   id          String       @id @default(uuid())
   name        String
   slug        String       @unique
+  location    String
   departments Department[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -226,4 +228,17 @@ enum AuditAction {
   PAYMENT_PROCESSED
   STATUS_CHANGED
   USER_LOGIN
+}
+
+model RecommendationCache {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  courses   String // JSON string of recommended courses
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("recommendation_caches")
 }
