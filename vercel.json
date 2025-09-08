@@ -1,0 +1,5 @@
+{
+  "version": 3,
+  "installCommand": "npm install && prisma generate",
+  "buildCommand": "npm run build"
+}
