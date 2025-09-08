@@ -208,41 +208,6 @@ export default function StudentDashboard({ analytics }: StudentDashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-6 md:mb-8 mt-6 md:mt-8">
-        {/* Recent Matches */}
-        <div className="bg-white shadow rounded-lg p-4 md:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <Target className="h-5 w-5 text-indigo-600 mr-2" />
-            Recent Matches
-          </h3>
-          <div className="space-y-3">
-            {analytics.recentMatches?.slice(0, 3).map((match: any) => (
-              <div
-                key={match.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    {match.programName}
-                  </p>
-                  <p className="text-xs text-gray-500">{match.university}</p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                    {match.matchScore}% match
-                  </span>
-                  <p className="text-xs text-gray-500 mt-1">{match.timeAgo}</p>
-                </div>
-              </div>
-            ))}
-            {(!analytics.recentMatches ||
-              analytics.recentMatches.length === 0) && (
-              <p className="text-gray-500 text-sm text-center py-4">
-                No recent matches
-              </p>
-            )}
-          </div>
-        </div>
-
         {/* Recent Activity */}
         <div className="bg-white shadow rounded-lg p-4 md:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">

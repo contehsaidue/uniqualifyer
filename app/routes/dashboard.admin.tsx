@@ -216,26 +216,51 @@ export default function DepartmentAdminDashboard({
       </div>
 
       {/* User Info Sidebar */}
-      <div className="bg-white shadow rounded-lg p-4 md:p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Department Information
-        </h3>
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm text-gray-600">Department</p>
-            <p className="font-medium">{analytics.departmentName || "N/A"}</p>
+      <div className="bg-white shadow-lg rounded-xl p-5 md:p-7 border border-gray-100">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-xl font-semibold text-gray-800">
+            Department Information
+          </h3>
+          <div className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
+            Admin
           </div>
-          <div>
-            <p className="text-sm text-gray-600">University</p>
-            <p className="font-medium">{analytics.universityName || "N/A"}</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Department
+            </p>
+            <p className="font-medium text-gray-900 text-lg mt-1">
+              {analytics.departmentName || "N/A"}
+            </p>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Role</p>
-            <p className="font-medium">Department Administrator</p>
+
+          <div className="pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              University
+            </p>
+            <p className="font-medium text-gray-900 text-lg mt-1">
+              {analytics.universityName || "N/A"}
+            </p>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Email</p>
-            <p className="font-medium">{user?.email || "N/A"}</p>
+
+          <div className="pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Role
+            </p>
+            <p className="font-medium text-gray-900 text-lg mt-1">
+              Department Administrator
+            </p>
+          </div>
+
+          <div className="pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Email
+            </p>
+            <p className="font-medium text-gray-900 text-lg mt-1 break-all">
+              {user?.email || "N/A"}
+            </p>
           </div>
         </div>
       </div>

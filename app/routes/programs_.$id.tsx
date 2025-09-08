@@ -336,7 +336,7 @@ export default function ProgramDetail() {
                 Start your application for the {program.name} program today.
               </p>
               <Link
-                to={`/apply?program=${program.id}`}
+                to={`/auth/login`}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:blue-700 transition-colors text-center block"
               >
                 Start Application

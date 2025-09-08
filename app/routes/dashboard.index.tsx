@@ -10,7 +10,7 @@ import { USER_ROLES } from "@/utils/constants";
 import StudentDashboard from "./dashboard.applicant";
 import DepartmentAdminDashboard from "./dashboard.admin";
 import SuperAdminDashboard from "./dashboard.super";
-import { getCurrentDateTime } from "~/utils/getTimeBasedGreeting";
+import { getCurrentDateTime } from "~/utils/helperFunctions";
 import {
   SunIcon,
   SparklesIcon,
@@ -18,11 +18,10 @@ import {
   CalendarIcon,
   ClockIcon,
 } from "lucide-react";
-import {
-  fetchDepartmentAdminAnalyticsData,
-  fetchStudentAnalyticsData,
-  fetchSuperAdminAnalyticsData,
-} from "~/utils/helperFunctions";
+
+import { fetchSuperAdminAnalyticsData } from "~/utils/super.utils";
+import { fetchDepartmentAdminAnalyticsData } from "~/utils/deptadmin.utils";
+import { fetchStudentAnalyticsData } from "~/utils/applicant.utils";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));

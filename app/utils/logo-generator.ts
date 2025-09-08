@@ -1,6 +1,4 @@
-// app/utils/logo-generator.ts
 
-// List of nice gradient colors for university logos
 const GRADIENT_PAIRS = [
   ['#FF6B6B', '#FF8E53'], // Red to Orange
   ['#4ECDC4', '#556270'], // Teal to Dark Blue
@@ -14,7 +12,7 @@ const GRADIENT_PAIRS = [
   ['#FF5F6D', '#FFC371'], // Coral to Peach
 ];
 
-// List of academic-related icons (from Material Design Icons, FontAwesome, etc.)
+
 const ACADEMIC_ICONS = [
   '🎓', '📚', '🏫', '📝', '🔬', '🧪', '🧮', '🌍', '💡', '⚖️',
   '🧬', '📊', '💻', '🏛️', '🎨', '🎵', '⚽', '🔍', '📖', '🌟'
