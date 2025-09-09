@@ -20,22 +20,17 @@ const ACADEMIC_ICONS = [
 
 export function generateUniversityLogo(universityName: string, slug?: string): string {
   const identifier = slug || universityName.toLowerCase().replace(/\s+/g, '-');
-  
-  // Create a deterministic hash from the identifier
+ 
   const hash = stringToHash(identifier);
   
-  // Select gradient based on hash
   const gradientIndex = hash % GRADIENT_PAIRS.length;
   const [color1, color2] = GRADIENT_PAIRS[gradientIndex];
   
-  // Select icon based on hash
   const iconIndex = hash % ACADEMIC_ICONS.length;
   const icon = ACADEMIC_ICONS[iconIndex];
   
-  // Get initials from university name
   const initials = getInitials(universityName);
   
-  // Return SVG data URL
   return generateSvgLogo(initials, icon, color1, color2);
 }
 

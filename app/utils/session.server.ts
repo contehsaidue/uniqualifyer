@@ -2,7 +2,7 @@ import { logoutUser } from "@/services/auth.service";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { Session, SessionData } from "@remix-run/node";
 
-const sessionSecret = process.env.SESSION_SECRET || "default-secret-please-change";
+const sessionSecret = process.env.SESSION_SECRET || "57f3f653b55d46af0355019085adce896bb38483c673fddd5a948e996664352b";
 if (!process.env.SESSION_SECRET) {
   console.warn("⚠️ No SESSION_SECRET set, using insecure default!");
 }
@@ -15,7 +15,7 @@ const { getSession, commitSession, destroySession } = createCookieSessionStorage
     path: "/",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
+    maxAge: 60 * 60 * 24 * 7, 
   },
 });
 

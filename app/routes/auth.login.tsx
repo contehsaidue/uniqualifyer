@@ -25,12 +25,14 @@ export async function action({ request }: ActionFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const formData = await request.formData();
 
-  // Validate and type form inputs
   const email = formData.get("email");
   const password = formData.get("password");
 
   if (typeof email !== "string" || typeof password !== "string") {
-    return new Response("Invalid form data", { status: 400 });
+    return {
+      error: "Invalid form data",
+      status: 400,
+    };
   }
 
   try {
@@ -49,16 +51,29 @@ export async function action({ request }: ActionFunctionArgs) {
       },
     });
   } catch (error) {
-    let errorMessage = "Login failed";
+    let errorMessage = "Login failed. Please check your credentials.";
+
+    // More specific error messages
     if (error instanceof Error) {
-      errorMessage = error.message;
+      if (
+        error.message.includes("credentials") ||
+        error.message.includes("password")
+      ) {
+        errorMessage = "Invalid email or password";
+      } else if (
+        error.message.includes("network") ||
+        error.message.includes("connection")
+      ) {
+        errorMessage = "Network error. Please try again.";
+      } else {
+        errorMessage = error.message;
+      }
     }
-    return new Response(errorMessage, {
+
+    return {
+      error: errorMessage,
       status: 401,
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
+    };
   }
 }
 

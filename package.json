@@ -8,9 +8,7 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc",
-    "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && remix vite:build"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
@@ -21,7 +19,6 @@
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.2",
     "framer-motion": "^12.23.5",
-    "googleapis": "^159.0.0",
     "isbot": "^4.1.0",
     "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",

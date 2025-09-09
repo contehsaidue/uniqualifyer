@@ -1,4 +1,4 @@
-// app/services/program-matching.service.ts
+
 import { Prisma, QualificationType, RequirementType } from "@prisma/client";
 import prisma from '@/lib/prisma';
 
@@ -72,7 +72,7 @@ export async function getProgramMatches(
         },
         requirements: true
       },
-       orderBy: {
+      orderBy: {
         createdAt: 'desc' 
       }
     });
@@ -88,11 +88,16 @@ export async function getProgramMatches(
     const matches: ProgramMatch[] = [];
 
     for (const program of programs) {
+      // Skip programs with no requirements
+      if (!program.requirements || program.requirements.length === 0) {
+        continue;
+      }
+
       const requirementMatches: RequirementMatch[] = [];
       let metRequirements = 0;
 
       // Check each requirement against student's qualifications
-      for (const requirement of program.requirements || []) {
+      for (const requirement of program.requirements) {
         const matchResult = checkSingleRequirement(requirement, qualifications);
         
         requirementMatches.push({
@@ -110,10 +115,8 @@ export async function getProgramMatches(
         }
       }
 
-      const totalRequirements = program.requirements?.length || 0;
-      const matchScore = totalRequirements > 0 
-        ? Math.round((metRequirements / totalRequirements) * 100)
-        : 100;
+      const totalRequirements = program.requirements.length;
+      const matchScore = Math.round((metRequirements / totalRequirements) * 100);
 
       matches.push({
         programId: program.id,
@@ -135,7 +138,6 @@ export async function getProgramMatches(
     return [];
   }
 }
-
 /**
  * Check a single requirement against all qualifications
  */
@@ -250,7 +252,7 @@ function compareGrades(
 ): { matches: boolean; reason: string } {
   
   // Handle letter grades (A, B, C, etc.)
-  const gradeOrder = ['F', 'E', 'D', 'C', 'B', 'A', 'A+'];
+  const gradeOrder = ['F9', 'E8', 'D7', 'C6', 'C5', 'C4', 'B3', 'B2', 'A1'];
   const studentIndex = gradeOrder.indexOf(studentGrade.toUpperCase());
   const requiredIndex = gradeOrder.indexOf(requiredGrade.toUpperCase());
 

@@ -87,24 +87,52 @@ async function seedDatabase() {
     });
     console.log(`Created ${programs.count} programs`);
 
+       const engProgram = await prisma.program.findFirstOrThrow({
+      where: { name: 'Electrical Engineering BSc' }
+    });
+
     const csProgram = await prisma.program.findFirstOrThrow({
       where: { name: 'Computer Science BSc' }
     });
 
+   
     // 4. Create Program Requirements
     const requirements = await prisma.programRequirement.createMany({
       data: [
         {
-          programId: csProgram.id,
+          programId: engProgram.id,
           type: 'GRADE',
           subject: 'Mathematics',
-          minGrade: 'B',
+          minGrade: 'B2',
           description: 'Minimum grade B in Mathematics',
         },
         {
-          programId: csProgram.id,
-          type: 'LANGUAGE',
-          description: 'English proficiency test required',
+          programId: engProgram.id,
+         type: 'GRADE',
+          subject: 'English',
+          minGrade: 'B3',
+          description: 'Minimum grade B in English',
+        },
+        {
+          programId: engProgram.id,
+         type: 'GRADE',
+          subject: 'Physics',
+          minGrade: 'C4',
+          description: 'Minimum grade C4 in Physics',
+        },
+          {
+          programId: engProgram.id,
+         type: 'GRADE',
+          subject: 'Engineering Science',
+          minGrade: 'C4',
+          description: 'Minimum grade C4 in Engineering Science',
+        },
+             {
+          programId: engProgram.id,
+         type: 'GRADE',
+          subject: 'Biology',
+          minGrade: 'C4',
+          description: 'Minimum grade C4 in Biology',
         },
       ],
       skipDuplicates: true,
@@ -167,7 +195,6 @@ async function seedDatabase() {
               departmentId: csDepartment.id,
               permissions: {
                 create: {
-                  canVerifyDocuments: true,
                   canApproveApplications: true,
                   canManageDepartment: true,
                 }
@@ -201,9 +228,15 @@ async function seedDatabase() {
                     verified: true,
                   },
                   {
-                    type: QualificationType.LANGUAGE_TEST,
+                    type: QualificationType.HIGH_SCHOOL,
                     subject: 'English',
-                    grade: 'IELTS 7.5',
+                    grade: 'B',
+                    verified: true,
+                  },
+                    {
+                    type: QualificationType.HIGH_SCHOOL,
+                    subject: 'Physics',
+                    grade: 'B',
                     verified: true,
                   },
                 ],
@@ -226,22 +259,28 @@ async function seedDatabase() {
       student = await prisma.student.create({
         data: {
           userId: studentUser!.id,
-          qualifications: {
-            create: [
-              {
-                type: QualificationType.HIGH_SCHOOL,
-                subject: 'Mathematics',
-                grade: 'A',
-                verified: true,
+         qualifications: {
+                create: [
+                  {
+                    type: QualificationType.HIGH_SCHOOL,
+                    subject: 'Mathematics',
+                    grade: 'A',
+                    verified: true,
+                  },
+                  {
+                    type: QualificationType.HIGH_SCHOOL,
+                    subject: 'English',
+                    grade: 'B',
+                    verified: true,
+                  },
+                    {
+                    type: QualificationType.HIGH_SCHOOL,
+                    subject: 'Physics',
+                    grade: 'B',
+                    verified: true,
+                  },
+                ],
               },
-              {
-                type: QualificationType.LANGUAGE_TEST,
-                subject: 'English',
-                grade: 'IELTS 7.5',
-                verified: true,
-              },
-            ],
-          },
         },
       });
       console.log('Created student record:', student.id);
@@ -253,7 +292,7 @@ async function seedDatabase() {
     let application = await prisma.application.findFirst({
       where: {
         studentId: student.id,
-        programId: csProgram.id,
+        programId: engProgram.id,
       }
     });
 
@@ -261,7 +300,7 @@ async function seedDatabase() {
       application = await prisma.application.create({
         data: {
           studentId: student.id,
-          programId: csProgram.id,
+          programId: engProgram.id,
           status: ApplicationStatus.PENDING,
           submittedAt: new Date(),
         },

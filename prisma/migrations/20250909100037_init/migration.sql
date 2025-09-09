@@ -178,6 +178,18 @@ CREATE TABLE "public"."AuditLog" (
     CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."recommendation_caches" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "courses" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "recommendation_caches_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
 
@@ -210,6 +222,9 @@ CREATE INDEX "AuditLog_userId_idx" ON "public"."AuditLog"("userId");
 
 -- CreateIndex
 CREATE INDEX "AuditLog_createdAt_idx" ON "public"."AuditLog"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "recommendation_caches_userId_key" ON "public"."recommendation_caches"("userId");
 
 -- AddForeignKey
 ALTER TABLE "public"."super_admins" ADD CONSTRAINT "super_admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -252,3 +267,6 @@ ALTER TABLE "public"."Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "public"."AuditLog" ADD CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."recommendation_caches" ADD CONSTRAINT "recommendation_caches_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -158,7 +158,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     where: existingSession ? { id: existingSession.id } : { id: '' }, 
     update: { 
       refreshToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) 
     },
     create: {
       userId: user.id,
@@ -166,8 +166,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     }
   });
-
-  // Get full user data with role information
+  
   const userWithRoleData = await getUserWithRoleData(user.id, user.role);
 
   return {

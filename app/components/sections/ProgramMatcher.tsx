@@ -45,15 +45,15 @@ const ProgramMatcher = () => {
   const sierraLeonePrograms: Program[] = [
     {
       id: 1,
-      name: "Computer Science BSc",
-      university: "Njaala University",
-      department: "School of Technology",
+      name: "Electrical Engineering BSc",
+      university: "Fourah Bay College",
+      department: "Faculty of Engineering",
       requirementType: "GRADE",
       minGrade: "B3",
-      minEnglish: 6.0,
+      minEnglish: 7.0,
       extracurricularWeight: 0.1,
       workExperienceWeight: 0.05,
-      popularity: 0.95,
+      popularity: 0.92,
     },
     {
       id: 2,
@@ -116,20 +116,19 @@ const ProgramMatcher = () => {
       popularity: 0.92,
     },
     {
-      id: 6,
-      name: "Electrical Engineering BSc",
-      university: "Fourah Bay College",
-      department: "Faculty of Engineering",
+      id: 7,
+      name: "Computer Science BSc",
+      university: "Njaala University",
+      department: "School of Technology",
       requirementType: "GRADE",
       minGrade: "B3",
-      minEnglish: 7.0,
+      minEnglish: 6.0,
       extracurricularWeight: 0.1,
       workExperienceWeight: 0.05,
-      popularity: 0.92,
+      popularity: 0.95,
     },
   ];
 
-  // Convert WASSCE grades to numerical values for comparison
   const gradeToNumber = (grade: string): number => {
     const gradeScale: Record<string, number> = {
       A1: 9,
