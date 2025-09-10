@@ -213,7 +213,9 @@ export default function Recommendations() {
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex flex-wrap mb-6">
         <div className="w-full">
-          <h2 className="text-2xl font-bold text-gray-900">My Programs</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Program Recommendations
+          </h2>
           <p className="text-gray-600 text-sm">
             See which programs match your result
           </p>

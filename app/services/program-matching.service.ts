@@ -1,4 +1,3 @@
-
 import { Prisma, QualificationType, RequirementType } from "@prisma/client";
 import prisma from '@/lib/prisma';
 
@@ -44,6 +43,7 @@ export interface QualificationMatch {
 
 /**
  * Check if a student's qualifications match program requirements
+ * Returns both perfect matches (100%) and partial matches (50-99%) as recommendations
  */
 export async function getProgramMatches(
   currentUser: UserSession
@@ -118,16 +118,19 @@ export async function getProgramMatches(
       const totalRequirements = program.requirements.length;
       const matchScore = Math.round((metRequirements / totalRequirements) * 100);
 
-      matches.push({
-        programId: program.id,
-        programName: program.name,
-        departmentName: program.department?.name || 'Unknown Department',
-        universityName: program.department?.university?.name || 'Unknown University',
-        matchScore,
-        metRequirements,
-        totalRequirements,
-        requirements: requirementMatches
-      });
+      // Add programs with at least 50% match score (both perfect and partial matches)
+      if (matchScore >= 50) {
+        matches.push({
+          programId: program.id,
+          programName: program.name,
+          departmentName: program.department?.name || 'Unknown Department',
+          universityName: program.department?.university?.name || 'Unknown University',
+          matchScore,
+          metRequirements,
+          totalRequirements,
+          requirements: requirementMatches
+        });
+      }
     }
 
     // Sort by match score (highest first)
@@ -138,6 +141,9 @@ export async function getProgramMatches(
     return [];
   }
 }
+
+// The rest of the helper functions remain unchanged...
+
 /**
  * Check a single requirement against all qualifications
  */

@@ -108,13 +108,7 @@ export default function Sidebar({ user }: SidebarProps) {
       label: "Eligible Programs",
       roles: [USER_ROLES.STUDENT],
     },
-    {
-      id: "recommendations",
-      to: "/dashboard/recommendations",
-      icon: <BookAlertIcon className="h-5 w-5" />,
-      label: "Recommendations",
-      roles: [USER_ROLES.STUDENT],
-    },
+
     {
       id: "applications",
       to: "/dashboard/applications",
