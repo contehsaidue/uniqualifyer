@@ -232,19 +232,19 @@ const ProgramMatcher = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Interact with the algorithm
+            Interact with the eligibility algorithm
           </h2>
           <p className="text-xl text-gray-300">
-            Adjust your qualifications and find the best programs for you
+            Adjust your result and find the best programs for you
           </p>
         </div>
 
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Qualifications Section */}
+            {/* Result Section */}
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Your Qualifications
+                Your Grades
               </h3>
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
@@ -397,7 +397,6 @@ const ProgramMatcher = () => {
             </button>
             <button
               onClick={() => {
-                // Randomize values for demo
                 const wassceGrades = ["A1", "B2", "B3", "C4", "C5", "C6"];
                 const randomGrade =
                   wassceGrades[Math.floor(Math.random() * wassceGrades.length)];
