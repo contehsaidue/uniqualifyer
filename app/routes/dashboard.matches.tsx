@@ -307,9 +307,11 @@ export default function DashboardMatches() {
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex flex-wrap mb-6">
         <div className="w-full">
-          <h2 className="text-2xl font-bold text-gray-900">Program Matches</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            My Eligible Program Matches
+          </h2>
           <p className="text-gray-600 text-sm">
-            See which programs match your qualifications
+            See which programs match your result
           </p>
         </div>
       </div>
@@ -354,7 +356,7 @@ export default function DashboardMatches() {
           <div className="mb-4 text-sm text-gray-600">
             {filteredPrograms.length} program
             {filteredPrograms.length !== 1 ? "s" : ""} found that matched your
-            qualifications
+            result
             {searchQuery && ` for "${searchQuery}"`}
           </div>
 

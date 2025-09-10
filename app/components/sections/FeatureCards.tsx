@@ -23,24 +23,18 @@ export function FeatureCards() {
       title: "Instant Results",
       description:
         "Get immediate feedback on your eligibility for hundreds of university courses worldwide.",
-      cta: "Check eligibility",
-      link: "/eligibility-check",
     },
     {
       icon: <BookOpen className="w-5 h-5" />,
       title: "Comprehensive Database",
       description:
         "Access up-to-date admission requirements from top universities all in one place.",
-      cta: "Browse universities",
-      link: "/universities",
     },
     {
       icon: <BarChart className="w-5 h-5" />,
       title: "Smart Recommendations",
       description:
         "Receive personalized course suggestions based on your academic profile.",
-      cta: "Get recommendations",
-      link: "/recommendations",
     },
   ];
 
@@ -136,15 +130,9 @@ export function FeatureCards() {
               {/* Main card */}
               <div
                 className="relative h-full bg-white/95 backdrop-blur-sm p-8 rounded-xl border border-gray-200/70 shadow-sm hover:shadow-lg transition-all overflow-hidden cursor-pointer"
-                onClick={() => handleNavigation(feature.link)}
                 role="button"
                 tabIndex={0}
                 aria-label={`Learn more about ${feature.title}`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    handleNavigation(feature.link);
-                  }
-                }}
               >
                 {/* Dynamic gradient icon */}
                 <div
@@ -172,9 +160,6 @@ export function FeatureCards() {
                   whileHover={{ x: 4 }}
                   className="inline-flex items-center text-sm font-medium text-indigo-600 cursor-pointer mt-auto group/cta"
                 >
-                  <span className="group-hover/cta:underline">
-                    {feature.cta}
-                  </span>
                   <motion.div
                     animate={{ x: [0, 4, 0] }}
                     transition={{
@@ -183,9 +168,7 @@ export function FeatureCards() {
                       ease: "easeInOut",
                     }}
                     className="ml-2"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </motion.div>
+                  ></motion.div>
                 </motion.div>
 
                 {/* Hover border animation */}

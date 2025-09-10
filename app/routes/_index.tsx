@@ -102,7 +102,7 @@ export default function Index() {
         <FeatureCards />
         <HowItWorks />
         <ProgramMatcher />
-        <UniversityExplorer data={data as unknown as HomepageData} />
+
         <Footer />
       </div>
     </>

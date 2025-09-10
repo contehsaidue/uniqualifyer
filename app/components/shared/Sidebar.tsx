@@ -15,6 +15,7 @@ import {
   X,
   FileQuestionMarkIcon,
   LucideFileQuestionMark,
+  BookAlertIcon,
 } from "lucide-react";
 import { Link, useLocation, Form } from "@remix-run/react";
 import { useState } from "react";
@@ -97,14 +98,21 @@ export default function Sidebar({ user }: SidebarProps) {
       id: "qualifications",
       to: "/dashboard/qualifications",
       icon: <LucideFileQuestionMark className="h-5 w-5" />,
-      label: "My Qualifications",
+      label: "My Result",
       roles: [USER_ROLES.STUDENT],
     },
     {
       id: "matches",
       to: "/dashboard/matches",
       icon: <BookOpen className="h-5 w-5" />,
-      label: "My Matches",
+      label: "Eligible Programs",
+      roles: [USER_ROLES.STUDENT],
+    },
+    {
+      id: "recommendations",
+      to: "/dashboard/recommendations",
+      icon: <BookAlertIcon className="h-5 w-5" />,
+      label: "Recommendations",
       roles: [USER_ROLES.STUDENT],
     },
     {

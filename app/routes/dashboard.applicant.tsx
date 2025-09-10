@@ -86,7 +86,7 @@ export default function StudentDashboard({ analytics }: StudentDashboardProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         <StatCard
           icon={<Target className="h-5 w-5 md:h-6 md:w-6 text-indigo-600" />}
-          title="Eligibility Matches"
+          title="Eligibile Programs"
           value={analytics.totalMatches}
           change={`+${analytics.matchesThisWeek} this week`}
         />
@@ -98,7 +98,7 @@ export default function StudentDashboard({ analytics }: StudentDashboardProps) {
         />
         <StatCard
           icon={<BookOpen className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />}
-          title="Qualifications"
+          title="Grades Uploaded"
           value={analytics.totalQualifications}
           change={`${analytics.verifiedQualifications} verified`}
         />

@@ -1,25 +1,31 @@
 import { Link } from "@remix-run/react";
-import React from "react";
+
+interface Step {
+  icon: string;
+  title: string;
+  description: string;
+  image: string;
+}
 
 export function HowItWorks() {
   const steps = [
     {
-      icon: "📝",
-      title: "Add Your Qualifications",
+      title: "Add Your Result",
       description:
-        "Input your academic records, test scores, and achievements with our intuitive form",
+        "Input your academic records, test scores, and achievements with our intuitive form. Our system makes it easy to enter all your credentials in one place, with helpful tips and validation to ensure accuracy.",
+      image: "/howto/1.png",
     },
     {
-      icon: "🔍",
       title: "Smart Matching Algorithm",
       description:
-        "Our AI analyzes thousands of programs to find your perfect matches based on your profile",
+        "Our AI analyzes thousands of programs to find your perfect matches based on your profile. The algorithm considers acceptance rates, historical data, and success patterns to identify programs where you'll thrive.",
+      image: "/howto/2.png",
     },
     {
-      icon: "🎯",
       title: "Get Personalized Matches",
       description:
-        "Receive tailored program recommendations with compatibility scores and insights",
+        "Receive tailored program recommendations with compatibility scores and insights. Each match includes detailed information about why it's a good fit and what you might need to strengthen your application.",
+      image: "/howto/3.png",
     },
   ];
 
@@ -46,35 +52,47 @@ export function HowItWorks() {
             Find Your Perfect Program
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Our intelligent platform matches your qualifications with the best
+            Our intelligent platform matches your results with the best
             educational opportunities in three simple steps
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
+        <div className="space-y-28">
           {steps.map((step, index) => (
-            <div key={index} className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-sm transform group-hover:scale-105 group-hover:shadow-lg transition-all duration-300 -z-10"></div>
+            <div
+              key={index}
+              className={`flex flex-col ${
+                index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+              } gap-12 items-center`}
+            >
+              {/* Text Content */}
 
-              <div className="h-full p-8 flex flex-col items-center text-center">
-                {/* Step number */}
-                <div className="w-12 h-12 rounded-full bg-white border-2 border-blue-100 flex items-center justify-center text-blue-600 font-semibold mb-6 shadow-sm">
-                  {index + 1}
+              <div className="flex-1">
+                <div className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-bold text-lg rounded shadow-md mr-4 mb-4">
+                  <span>Step {index + 1}</span>
                 </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  {step.title}
+                </h3>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  {step.description}
+                </p>
 
-                {/* Icon container */}
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  {step.icon}
-                </div>
+                {index === 0 && (
+                  <button className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-300 shadow-sm">
+                    <Link to={"/auth/login"}>Get Started Now</Link>
+                  </button>
+                )}
+              </div>
 
-                {/* Content */}
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {step.description}
-                  </p>
+              <div className="flex-1 flex justify-center">
+                <div className="w-full max-w-md bg-white p-4 rounded-2xl shadow-lg border border-purple-100 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/30 hover:-translate-y-1">
+                  <img
+                    src={step.image}
+                    alt={step.title}
+                    className="w-full h-auto rounded-xl object-contain"
+                    style={{ maxHeight: "200px" }}
+                  />
                 </div>
               </div>
             </div>

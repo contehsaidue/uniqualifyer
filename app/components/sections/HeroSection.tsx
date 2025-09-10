@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Sparkles,
   BowArrowIcon,
+  HomeIcon,
 } from "lucide-react";
 import { Link } from "@remix-run/react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -187,7 +188,7 @@ export function HeroSection() {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-lg text-gray-200"
             >
-              Smart University Matching
+              Smart University Eligibility Matching
             </motion.p>
           </div>
 
@@ -226,7 +227,7 @@ export function HeroSection() {
             >
               <span className="absolute right-0 -mt-12 h-32 w-8 translate-x-12 rotate-12 transform bg-white opacity-10 transition-all duration-1000 ease-out group-hover:-translate-x-40"></span>
               <Search className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-              Discover your path
+              Check eligibility now
               <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>

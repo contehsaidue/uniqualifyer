@@ -347,10 +347,10 @@ export default function StudentQualificationManagement() {
       <div className="flex flex-wrap mb-6">
         <div className="w-full md:w-2/3">
           <h2 className="text-2xl font-bold text-gray-900">
-            My Qualifications
+            My Uploaded Result
           </h2>
           <p className="text-gray-600 text-sm">
-            Manage your academic qualifications for applications
+            Manage your academic results for applications
           </p>
         </div>
         <div className="w-full md:w-1/3 text-right mt-3 md:mt-0">
@@ -359,7 +359,7 @@ export default function StudentQualificationManagement() {
             className="bg-green-600 text-white py-2 px-4 rounded text-sm font-bold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 inline-flex items-center"
           >
             <PlusCircle className="mr-2" size={18} />
-            Add Qualification
+            Add Result
           </button>
         </div>
       </div>
@@ -367,11 +367,9 @@ export default function StudentQualificationManagement() {
       {qualifications.length === 0 ? (
         <div className="text-center py-12 border border-dashed border-gray-300 rounded-lg">
           <BookOpenText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            No qualifications
-          </h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No result</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Get started by adding your first qualification.
+            Get started by adding your first result.
           </p>
           <div className="mt-6">
             <button
@@ -379,7 +377,7 @@ export default function StudentQualificationManagement() {
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <PlusCircle className="-ml-1 mr-2 h-5 w-5" />
-              Add Qualification
+              Add Result
             </button>
           </div>
         </div>
@@ -393,9 +391,7 @@ export default function StudentQualificationManagement() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">
-                {currentQualification.id
-                  ? "Edit Qualification"
-                  : "Add New Qualification"}
+                {currentQualification.id ? "Edit Result" : "Add New Result"}
               </h2>
 
               <Form method="post" onSubmit={handleFormSubmit}>
@@ -415,7 +411,7 @@ export default function StudentQualificationManagement() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Qualification Type
+                      Result Type
                     </label>
                     <select
                       name="type"
@@ -456,7 +452,7 @@ export default function StudentQualificationManagement() {
                       defaultValue={currentQualification.grade || ""}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., A, 85%, 3.8 GPA"
+                      placeholder="e.g., A1, B2, C4"
                     />
                   </div>
 
