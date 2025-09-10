@@ -14,6 +14,7 @@ import { getPrograms } from "@/utils/models/program.server";
 import ProgramMatcher from "~/components/sections/ProgramMatcher";
 import Footer from "~/components/sections/Footer";
 import { generateUniversityLogo } from "~/utils/logo-generator";
+import WassceInterpreter from "~/components/sections/WassceInterpreter";
 
 export const meta: MetaFunction = () => {
   return [
@@ -101,6 +102,7 @@ export default function Index() {
         <HeroSection />
         <FeatureCards />
         <HowItWorks />
+        <WassceInterpreter />
         <ProgramMatcher />
 
         <Footer />
