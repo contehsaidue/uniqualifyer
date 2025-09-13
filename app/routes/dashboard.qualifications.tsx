@@ -44,6 +44,39 @@ interface Qualification {
   };
 }
 
+const WASSCE_SUBJECTS = [
+  "English Language",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Further Mathematics",
+  "Geography",
+  "History",
+  "Economics",
+  "Government",
+  "Literature in English",
+  "French",
+  "Christian Religious Studies",
+  "Islamic Religious Studies",
+  "Agriculture",
+  "Business Management",
+  "Financial Accounting",
+  "Cost Accounting",
+  "Commerce",
+  "Economics",
+  "Food and Nutrition",
+  "Management in Living",
+  "Physical Health Education",
+  "Technical Drawing",
+  "Metalwork",
+  "Woodwork",
+  "Engineering Science",
+  "Science (Core)",
+];
+
+const WASSCE_GRADES = ["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"];
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const refreshToken = session.get("refreshToken");
@@ -126,7 +159,6 @@ export async function action({ request }: ActionFunctionArgs) {
           grade: formData.get("grade") as string,
         };
 
-        // Validate required fields
         if (
           !qualificationData.type ||
           !qualificationData.subject ||
@@ -163,7 +195,6 @@ export async function action({ request }: ActionFunctionArgs) {
           grade: formData.get("grade") as string,
         };
 
-        // Validate at least one field is provided
         if (
           !qualificationData.type &&
           !qualificationData.subject &&
@@ -413,16 +444,34 @@ export default function StudentQualificationManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Result Type
                     </label>
-                    <select
+                    <input
+                      type="text"
                       name="type"
-                      defaultValue={currentQualification.type}
+                      value={QualificationType.HIGH_SCHOOL}
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                    <input
+                      type="hidden"
+                      name="type"
+                      value={QualificationType.HIGH_SCHOOL}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject
+                    </label>
+                    <select
+                      name="subject"
+                      defaultValue={currentQualification.subject || ""}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      {Object.values(QualificationType).map((type) => (
-                        <option key={type} value={type}>
-                          {type.charAt(0) +
-                            type.slice(1).toLowerCase().replace("_", " ")}
+                      <option value="">Select a subject</option>
+                      {WASSCE_SUBJECTS.map((subject) => (
+                        <option key={subject} value={subject}>
+                          {subject}
                         </option>
                       ))}
                     </select>
@@ -430,39 +479,21 @@ export default function StudentQualificationManagement() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Subject
+                      Grade
                     </label>
-                    <input
-                      type="text"
-                      name="subject"
-                      defaultValue={currentQualification.subject || ""}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., Mathematics, English, Physics"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Grade/Score
-                    </label>
-                    <input
-                      type="text"
+                    <select
                       name="grade"
                       defaultValue={currentQualification.grade || ""}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., A1, B2, C4"
-                    />
-                  </div>
-
-                  <div className="bg-blue-50 p-3 rounded-md">
-                    <p className="text-sm text-blue-700">
-                      <strong>Note:</strong> After adding a qualification, you
-                      may need to upload supporting documents through the
-                      Documents section. Administrators will verify your
-                      qualifications.
-                    </p>
+                    >
+                      <option value="">Select a grade</option>
+                      {WASSCE_GRADES.map((grade) => (
+                        <option key={grade} value={grade}>
+                          {grade}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="flex justify-end space-x-3 pt-4">

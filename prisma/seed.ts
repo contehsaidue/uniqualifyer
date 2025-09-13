@@ -28,29 +28,30 @@ async function seedDatabase() {
           location: 'Freetown',
         },
         {
-          name: 'Njala University',
-          slug: 'njala-university',
-          location: 'Bo',
+          name: 'College of Medicine and Allied Health Sciences',
+          slug: 'comahs-usl',
+          location: 'Freetown',
         },
       ],
       skipDuplicates: true,
     });
     console.log(`Created ${universities.count} universities`);
 
-    const njalaUniversity = await prisma.university.findFirstOrThrow({
-      where: { slug: 'njala-university' }
-    });
 
     const fbcUniversity = await prisma.university.findFirstOrThrow({
       where: { slug: 'fbc-usl' }
+    });
+
+     const comahsUniversity = await prisma.university.findFirstOrThrow({
+      where: { slug: 'comahs-usl' }
     });
 
     // 2. Create Departments
     const departments = await prisma.department.createMany({
       data: [
         {
-          universityId: njalaUniversity.id,
-          name: 'Computer Science',
+          universityId: comahsUniversity.id,
+          name: 'Clinical Sciences',
           code: 'CS',
         },
         {
@@ -63,25 +64,27 @@ async function seedDatabase() {
     });
     console.log(`Created ${departments.count} departments`);
 
-    const csDepartment = await prisma.department.findFirstOrThrow({
-      where: { code: 'CS' }
-    });
 
     const engDepartment = await prisma.department.findFirstOrThrow({
       where: { code: 'ENG' }
     });
 
+     const medDepartment = await prisma.department.findFirstOrThrow({
+      where: { code: 'CS' }
+    });
+
     // 3. Create Programs
     const programs = await prisma.program.createMany({
       data: [
-        {
-          departmentId: csDepartment.id,
-          name: 'Computer Science BSc',
-        },
-        {
+           {
           departmentId: engDepartment.id,
           name: 'Electrical Engineering BSc',
         },
+        {
+          departmentId: medDepartment.id,
+          name: 'Pharmacy BSc',
+        },
+     
       ],
       skipDuplicates: true,
     });
@@ -92,7 +95,7 @@ async function seedDatabase() {
     });
 
     const csProgram = await prisma.program.findFirstOrThrow({
-      where: { name: 'Computer Science BSc' }
+      where: { name: 'Pharmacy BSc' }
     });
 
    
@@ -192,7 +195,7 @@ async function seedDatabase() {
           role: 'DEPARTMENT_ADMINISTRATOR',
           department_administrator: {
             create: {
-              departmentId: csDepartment.id,
+              departmentId: medDepartment.id,
               permissions: {
                 create: {
                   canApproveApplications: true,

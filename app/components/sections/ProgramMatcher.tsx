@@ -248,7 +248,7 @@ const ProgramMatcher = () => {
               </h3>
               <div className="space-y-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <label className="block mb-2 font-medium">WASSCE Grade</label>
+                  <label className="block mb-2 font-medium">Grade</label>
                   <select
                     value={qualifications.wassce}
                     onChange={(e) =>
@@ -267,50 +267,6 @@ const ProgramMatcher = () => {
                     <option value="F9">F9 (Fail)</option>
                   </select>
                 </div>
-
-                {[
-                  {
-                    id: "extracurriculars",
-                    label: "Extracurricular Activities",
-                    value: qualifications.extracurriculars,
-                    min: 0,
-                    max: 5,
-                    step: 1,
-                  },
-                  {
-                    id: "workExperience",
-                    label: "Years of Work Experience",
-                    value: qualifications.workExperience,
-                    min: 0,
-                    max: 5,
-                    step: 1,
-                  },
-                ].map((item) => (
-                  <div key={item.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span>{item.label}</span>
-                      <span className="font-semibold">{item.value}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={item.min}
-                      max={item.max}
-                      step={item.step}
-                      value={item.value}
-                      onChange={(e) =>
-                        handleInputChange(
-                          item.id as keyof Qualifications,
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>{item.min}</span>
-                      <span>{item.max}</span>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 

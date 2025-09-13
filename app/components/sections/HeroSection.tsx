@@ -14,19 +14,19 @@ import { useEffect, useState, useCallback } from "react";
 
 const backgroundImages = [
   {
-    url: "/slides/1.jpg",
+    url: "/slides/1.jpeg",
     overlay: "bg-gradient-to-br from-indigo-600/40 to-purple-600/40",
   },
   {
-    url: "/slides/2.jpg",
+    url: "/slides/2.jpeg",
     overlay: "bg-gradient-to-br from-purple-600/40 to-blue-600/40",
   },
   {
-    url: "/slides/3.avif",
+    url: "/slides/3.jpeg",
     overlay: "bg-gradient-to-br from-blue-600/40 to-indigo-600/40",
   },
   {
-    url: "/slides/4.avif",
+    url: "/slides/4.jpeg",
     overlay: "bg-gradient-to-br from-blue-600/40 to-indigo-600/40",
   },
 ];
@@ -37,13 +37,11 @@ export function HeroSection() {
   const { scrollY } = useScroll();
   const yBg = useTransform(scrollY, [0, 300], [0, 100]);
 
-  // Set mounted state for animations
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
 
-  // Preload images for smoother transitions
   useEffect(() => {
     backgroundImages.forEach((image) => {
       const img = new Image();
@@ -51,13 +49,12 @@ export function HeroSection() {
     });
   }, []);
 
-  // Auto-rotate background images with cleanup
   useEffect(() => {
     if (!isMounted) return;
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-    }, 6000); // Increased to 6s for better UX
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isMounted]);
