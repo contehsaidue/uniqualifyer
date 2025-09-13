@@ -5,6 +5,7 @@ import {
   useSearchParams,
   useActionData,
   useNavigation,
+  Form,
 } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
@@ -104,7 +105,125 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
-export default function Recommendations() {
+export async function action({ request }: ActionFunctionArgs) {
+  console.log("Action started");
+  try {
+    const session = await getSession(request.headers.get("Cookie"));
+    const refreshToken = session.get("refreshToken");
+    const user = await getUserBySession(refreshToken);
+
+    if (!user) {
+      console.log("No user in action, redirecting to login");
+      if (refreshToken) {
+        throw redirect("/auth/login", {
+          headers: {
+            "Set-Cookie": await destroySession(session),
+          },
+        });
+      }
+      throw redirect("/auth/login");
+    }
+
+    if (user.role !== UserRole.STUDENT) {
+      console.log("Non-student tried to submit application");
+      return json(
+        { error: "Only students can submit applications" },
+        { status: 403 }
+      );
+    }
+
+    if (!user.id) {
+      console.log("User ID missing in action");
+      return json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    const formData = await request.formData();
+    const programId = formData.get("programId") as string;
+    const currentPage = formData.get("currentPage") as string;
+
+    console.log("Form data:", {
+      programId,
+      currentPage,
+      hasProgramId: !!programId,
+    });
+
+    if (!programId) {
+      console.log("Program ID missing in form data");
+      return json({ error: "Program ID is required" }, { status: 400 });
+    }
+
+    console.log(
+      "Checking eligibility for user:",
+      user.id,
+      "program:",
+      programId
+    );
+    const eligibility = await canStudentApply(user?.id, programId);
+    console.log("Eligibility result:", eligibility);
+
+    if (!eligibility.canApply) {
+      console.log("User not eligible to apply:", eligibility.reasons);
+      return json(
+        {
+          error: "Not eligible to apply",
+          reasons: eligibility.reasons || [],
+        },
+        { status: 400 }
+      );
+    }
+
+    const applicationInput = {
+      userId: user.id,
+      programId: programId,
+    };
+
+    console.log("Creating application with input:", applicationInput);
+    const application = await createApplication(applicationInput, {
+      ...user,
+      role: user.role as UserRole,
+    });
+    console.log("Application created:", application.id);
+
+    console.log("Submitting application:", application.id);
+    const submittedApplication = await submitApplication(application.id, {
+      ...user,
+      role: user.role as UserRole,
+    });
+    console.log("Application submitted successfully:", submittedApplication.id);
+
+    return json({
+      success: true,
+      applicationId: submittedApplication.id,
+      message: "Application submitted successfully!",
+      currentPage: currentPage || "1",
+    });
+  } catch (error) {
+    console.error("Action error:", error);
+
+    if (error instanceof Response) {
+      console.log("Response error caught, rethrowing");
+      throw error;
+    }
+
+    if (error instanceof Error) {
+      console.log("Error instance:", error.message);
+      if (error.message.includes("Unauthorized")) {
+        return json({ error: "Unauthorized access" }, { status: 401 });
+      }
+      if (error.message.includes("not found")) {
+        return json({ error: error.message }, { status: 404 });
+      }
+      if (error.message.includes("already exists")) {
+        return json({ error: error.message }, { status: 409 });
+      }
+      return json({ error: error.message }, { status: 500 });
+    }
+
+    return json({ error: "Failed to submit application" }, { status: 500 });
+  }
+}
+
+export default function ProgramMatches() {
   const { perfectMatches, partialMatches, currentUser } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
@@ -113,46 +232,59 @@ export default function Recommendations() {
     searchParams.get("search") || ""
   );
   const [activeTab, setActiveTab] = useState<"perfect" | "partial">("perfect");
-
-  console.log("Component rendered", {
-    perfectMatchesCount: perfectMatches.length,
-    partialMatchesCount: partialMatches.length,
-    actionData,
-    searchQuery,
-  });
-
-  // Remove the useEffect entirely and add this right after your actionData declaration
-  if (actionData) {
-    if (actionData.success && actionData.message) {
-      toast.success(actionData.message);
-
-      if (actionData.currentPage) {
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.set("page", actionData.currentPage);
-        setSearchParams(newSearchParams);
-      }
-    } else if (actionData.error) {
-      if (actionData.reasons && actionData.reasons.length > 0) {
-        toast.error(
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold">{actionData.error}</span>
-            <ul className="list-disc list-inside mt-1 text-sm">
-              {actionData.reasons.map((reason, index) => (
-                <li key={index}>{reason}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      } else {
-        toast.error(actionData.error);
-      }
-    }
-  }
-
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
 
-  // Get current programs based on active tab
+  // Handle toast notifications
+  useEffect(() => {
+    if (actionData) {
+      if (actionData.success && actionData.message) {
+        toast.success(actionData.message);
+      } else if (actionData.error) {
+        if (actionData.reasons && actionData.reasons.length > 0) {
+          toast.error(
+            <div className="flex flex-col gap-1">
+              <span className="font-semibold">{actionData.error}</span>
+              <ul className="list-disc list-inside mt-1 text-sm">
+                {actionData.reasons.map((reason, index) => (
+                  <li key={index}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        } else {
+          toast.error(actionData.error);
+        }
+      }
+    }
+  }, [actionData]);
+
+  // Handle page navigation after successful submission
+  useEffect(() => {
+    if (actionData?.success && actionData?.currentPage) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("page", actionData.currentPage);
+      setSearchParams(newSearchParams);
+    }
+  }, [
+    actionData?.success,
+    actionData?.currentPage,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  // Reset to first page when changing tabs or search query
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(searchParams);
+
+    // Only reset page if we're actually changing something that requires it
+    if (activeTab !== searchParams.get("tab")) {
+      newSearchParams.set("tab", activeTab);
+      newSearchParams.set("page", "1");
+      setSearchParams(newSearchParams);
+    }
+  }, [activeTab, searchParams, setSearchParams]);
+
   const currentPrograms =
     activeTab === "perfect" ? perfectMatches : partialMatches;
 
@@ -168,6 +300,7 @@ export default function Recommendations() {
     );
   }, [currentPrograms, searchQuery]);
 
+  // FIX: Add searchParams as dependency to recalculate currentPage when URL changes
   const totalPrograms = filteredPrograms.length;
   const currentPage = parseInt(searchParams.get("page") || "1") - 1;
   const currentProgram = filteredPrograms[currentPage] || filteredPrograms[0];
@@ -202,7 +335,6 @@ export default function Recommendations() {
     setSearchParams(newSearchParams);
   };
 
-  // Reset to first page when changing tabs
   useEffect(() => {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set("page", "1");
@@ -538,8 +670,7 @@ function ProgramMatchCard({
       </div>
 
       <div className="mt-4 pt-4 border-t">
-        {/* Use a regular form with method="post" */}
-        <form method="post">
+        <Form method="post">
           <input type="hidden" name="programId" value={program.programId} />
           <input
             type="hidden"
@@ -570,7 +701,7 @@ function ProgramMatchCard({
               "Not Eligible"
             )}
           </button>
-        </form>
+        </Form>
 
         {program.matchScore < 100 && program.matchScore >= 50 && (
           <p className="text-xs text-yellow-600 mt-2 text-center">

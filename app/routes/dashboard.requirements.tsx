@@ -51,6 +51,39 @@ interface ProgramRequirement {
   updatedAt: string;
 }
 
+const WASSCE_SUBJECTS = [
+  "English Language",
+  "Mathematics",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "Further Mathematics",
+  "Geography",
+  "History",
+  "Economics",
+  "Government",
+  "Literature in English",
+  "French",
+  "Christian Religious Studies",
+  "Islamic Religious Studies",
+  "Agriculture",
+  "Business Management",
+  "Financial Accounting",
+  "Cost Accounting",
+  "Commerce",
+  "Economics",
+  "Food and Nutrition",
+  "Management in Living",
+  "Physical Health Education",
+  "Technical Drawing",
+  "Metalwork",
+  "Woodwork",
+  "Engineering Science",
+  "Science (Core)",
+];
+
+const WASSCE_GRADES = ["A1", "B2", "B3", "C4", "C5", "C6", "D7", "E8", "F9"];
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const refreshToken = session.get("refreshToken");
@@ -438,15 +471,33 @@ export default function RequirementManagement() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Requirement Type
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      value={RequirementType.GRADE}
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                    <input
+                      type="hidden"
                       name="type"
-                      defaultValue={currentRequirement.type}
+                      value={RequirementType.GRADE}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject
+                    </label>
+                    <select
+                      name="subject"
+                      defaultValue={currentRequirement.subject || ""}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                      {Object.values(RequirementType).map((type) => (
-                        <option key={type} value={type}>
-                          {type.charAt(0) + type.slice(1).toLowerCase()}
+                      <option value="">Select a subject</option>
+                      {WASSCE_SUBJECTS.map((subject) => (
+                        <option key={subject} value={subject}>
+                          {subject}
                         </option>
                       ))}
                     </select>
@@ -454,26 +505,21 @@ export default function RequirementManagement() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Subject (if applicable)
+                      Minimum Grade
                     </label>
-                    <input
-                      type="text"
-                      name="subject"
-                      defaultValue={currentRequirement.subject || ""}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Minimum Grade (if applicable)
-                    </label>
-                    <input
-                      type="text"
+                    <select
                       name="minGrade"
                       defaultValue={currentRequirement.minGrade || ""}
+                      required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    >
+                      <option value="">Select a grade</option>
+                      {WASSCE_GRADES.map((grade) => (
+                        <option key={grade} value={grade}>
+                          {grade}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>

@@ -98,49 +98,6 @@ async function seedDatabase() {
       where: { name: 'Pharmacy BSc' }
     });
 
-   
-    // 4. Create Program Requirements
-    const requirements = await prisma.programRequirement.createMany({
-      data: [
-        {
-          programId: engProgram.id,
-          type: 'GRADE',
-          subject: 'Mathematics',
-          minGrade: 'B2',
-          description: 'Minimum grade B in Mathematics',
-        },
-        {
-          programId: engProgram.id,
-         type: 'GRADE',
-          subject: 'English',
-          minGrade: 'B3',
-          description: 'Minimum grade B in English',
-        },
-        {
-          programId: engProgram.id,
-         type: 'GRADE',
-          subject: 'Physics',
-          minGrade: 'C4',
-          description: 'Minimum grade C4 in Physics',
-        },
-          {
-          programId: engProgram.id,
-         type: 'GRADE',
-          subject: 'Engineering Science',
-          minGrade: 'C4',
-          description: 'Minimum grade C4 in Engineering Science',
-        },
-             {
-          programId: engProgram.id,
-         type: 'GRADE',
-          subject: 'Biology',
-          minGrade: 'C4',
-          description: 'Minimum grade C4 in Biology',
-        },
-      ],
-      skipDuplicates: true,
-    });
-    console.log(`Created ${requirements.count} program requirements`);
 
     // 5. Create Users (Students, Department Admins and Super Admins)
     const hashedPassword = await hash('12345678', 12);
@@ -155,7 +112,7 @@ async function seedDatabase() {
     });
 
     const existingStudent = await prisma.user.findUnique({
-      where: { email: 'student@example.com' }
+      where: { email: 'student@uniqualifyer.dev' }
     });
 
     // Create Super Admin only if it doesn't exist
@@ -216,36 +173,10 @@ async function seedDatabase() {
     if (!existingStudent) {
       studentUser = await prisma.user.create({
         data: {
-          email: 'student@example.com',
+          email: 'student@uniqualifyer.dev',
           name: 'Student User', 
           password: hashedPassword,
           role: 'STUDENT',
-          student: {
-            create: {
-              qualifications: {
-                create: [
-                  {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'Mathematics',
-                    grade: 'A',
-                    verified: true,
-                  },
-                  {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'English',
-                    grade: 'B',
-                    verified: true,
-                  },
-                    {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'Physics',
-                    grade: 'B',
-                    verified: true,
-                  },
-                ],
-              },
-            },
-          },
         },
       });
       console.log('Created student user:', studentUser.email);
@@ -262,96 +193,13 @@ async function seedDatabase() {
       student = await prisma.student.create({
         data: {
           userId: studentUser!.id,
-         qualifications: {
-                create: [
-                  {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'Mathematics',
-                    grade: 'A',
-                    verified: true,
-                  },
-                  {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'English',
-                    grade: 'B',
-                    verified: true,
-                  },
-                    {
-                    type: QualificationType.HIGH_SCHOOL,
-                    subject: 'Physics',
-                    grade: 'B',
-                    verified: true,
-                  },
-                ],
-              },
+         
         },
       });
       console.log('Created student record:', student.id);
     } else {
       console.log('Student record already exists:', student.id);
     }
-
-    // 7. Create Application (only if it doesn't exist)
-    let application = await prisma.application.findFirst({
-      where: {
-        studentId: student.id,
-        programId: engProgram.id,
-      }
-    });
-
-    if (!application) {
-      application = await prisma.application.create({
-        data: {
-          studentId: student.id,
-          programId: engProgram.id,
-          status: ApplicationStatus.PENDING,
-          submittedAt: new Date(),
-        },
-      });
-      console.log('Created application:', application.id);
-    } else {
-      console.log('Application already exists:', application.id);
-    }
-
-    // 8. Create Notes (only if it doesn't exist)
-    let note = await prisma.note.findFirst({
-      where: {
-        applicationId: application.id,
-        authorId: adminUser!.id,
-      }
-    });
-
-    if (!note) {
-      // Use non-null assertion since we know adminUser exists at this point
-      note = await prisma.note.create({
-        data: {
-          applicationId: application.id,
-          authorId: adminUser!.id, // Use non-null assertion here
-          content: 'Strong candidate, needs to submit English test results',
-          internalOnly: true,
-        },
-      });
-      console.log('Created note:', note.id);
-    } else {
-      console.log('Note already exists:', note.id);
-    }
-
-    // 9. Create Audit Logs (always create new logs)
-    const auditLog = await prisma.auditLog.create({
-      data: {
-        action: 'APPLICATION_SUBMITTED',
-        entityId: application.id,
-        entityType: 'Application',
-        userId: studentUser!.id,
-        ipAddress: '127.0.0.1',
-        userAgent: 'Seeder Script',
-        metadata: {
-          programId: csProgram.id,
-          status: ApplicationStatus.PENDING
-        }
-      }
-    });
-    console.log('Created audit log:', auditLog.id);
 
     console.log('✅ Database seeded successfully!');
   } catch (error) {

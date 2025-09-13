@@ -56,25 +56,34 @@ export async function getQualifications(
     verified
   } = options;
 
-  // Build where clause based on user permissions and filters
   const where: any = {};
 
-  // Students can only see their own qualifications
-  if (currentUser.role === "STUDENT" && currentUser.student?.id) {
-    where.studentId = currentUser.student.id;
+  if (currentUser.role === "STUDENT") {
+    let studentId = currentUser.student?.id;
+  
+    if (!studentId && currentUser.id) {
+      const student = await prisma.student.findUnique({
+        where: { userId: currentUser.id }
+      });
+      
+      if (student) {
+        studentId = student.id;
+      } else {
+        return [];
+      }
+    }
+    
+    where.studentId = studentId;
   }
 
-  // Admins can filter by student
   if (studentId && (currentUser.role === "DEPARTMENT_ADMINISTRATOR" || currentUser.role === "SUPER_ADMIN")) {
     where.studentId = studentId;
   }
 
-  // Apply type filter if provided
   if (type) {
     where.type = type;
   }
 
-  // Apply verification filter if provided
   if (verified !== undefined) {
     where.verified = verified;
   }
@@ -99,7 +108,6 @@ export async function getQualifications(
     }
   });
 }
-
 /**
  * Create a new qualification
  */
