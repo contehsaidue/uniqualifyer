@@ -31,18 +31,38 @@ const gradeColors: Record<string, string> = {
   F9: "bg-red-100 text-red-800 border-red-200",
 };
 
-const WassceInterpreter = () => {
+const ResultInterpreter = () => {
   const [results, setResults] = useState<SubjectGrade[]>([
-    { id: 1, subject: "Mathematics", grade: "B3" },
-    { id: 2, subject: "English Language", grade: "C4" },
-    { id: 3, subject: "Biology", grade: "B2" },
+    { id: 1, subject: "English Language", grade: "C4" },
+    { id: 2, subject: "Mathematics", grade: "B3" },
+    { id: 3, subject: "Physics", grade: "A1" },
     { id: 4, subject: "Chemistry", grade: "B3" },
-    { id: 5, subject: "Physics", grade: "A1" },
-    { id: 6, subject: "Geography", grade: "C5" },
+    { id: 5, subject: "Biology", grade: "B2" },
+    { id: 6, subject: "Further Mathematics", grade: "B3" },
+    { id: 7, subject: "Geography", grade: "C5" },
+    { id: 8, subject: "History", grade: "C6" },
+    { id: 9, subject: "Economics", grade: "B3" },
+    { id: 10, subject: "Government", grade: "C6" },
+    { id: 11, subject: "Literature in English", grade: "B2" },
+    { id: 12, subject: "French", grade: "C5" },
+    { id: 13, subject: "Christian Religious Studies", grade: "B2" },
+    { id: 14, subject: "Islamic Religious Studies", grade: "B3" },
+    { id: 15, subject: "Agriculture", grade: "C4" },
+    { id: 16, subject: "Business Management", grade: "B3" },
+    { id: 17, subject: "Financial Accounting", grade: "B2" },
+    { id: 18, subject: "Principles of Cost Accounting", grade: "C5" },
+    { id: 19, subject: "Commerce", grade: "C6" },
+    { id: 20, subject: "Food and Nutrition", grade: "B3" },
+    { id: 21, subject: "Management in Living", grade: "C4" },
+    { id: 22, subject: "Physical Health Education", grade: "B3" },
+    { id: 23, subject: "Technical Drawing", grade: "C5" },
+    { id: 24, subject: "Engineering Science", grade: "B3" },
+    { id: 25, subject: "Science (Core)", grade: "B2" },
   ]);
 
   const [isCalculating, setIsCalculating] = useState(false);
   const [activeSubject, setActiveSubject] = useState<number | null>(null);
+  const [visibleSubjects, setVisibleSubjects] = useState(5);
 
   useEffect(() => {
     setIsCalculating(true);
@@ -67,13 +87,33 @@ const WassceInterpreter = () => {
 
   const handleReset = () => {
     setResults([
-      { id: 1, subject: "Mathematics", grade: "B3" },
-      { id: 2, subject: "English Language", grade: "C4" },
-      { id: 3, subject: "Biology", grade: "B2" },
+      { id: 1, subject: "English Language", grade: "C4" },
+      { id: 2, subject: "Mathematics", grade: "B3" },
+      { id: 3, subject: "Physics", grade: "A1" },
       { id: 4, subject: "Chemistry", grade: "B3" },
-      { id: 5, subject: "Physics", grade: "A1" },
-      { id: 6, subject: "Geography", grade: "C5" },
+      { id: 5, subject: "Biology", grade: "B2" },
+      { id: 6, subject: "Further Mathematics", grade: "B3" },
+      { id: 7, subject: "Geography", grade: "C5" },
+      { id: 8, subject: "History", grade: "C6" },
+      { id: 9, subject: "Economics", grade: "B3" },
+      { id: 10, subject: "Government", grade: "C6" },
+      { id: 11, subject: "Literature in English", grade: "B2" },
+      { id: 12, subject: "French", grade: "C5" },
+      { id: 13, subject: "Christian Religious Studies", grade: "B2" },
+      { id: 14, subject: "Islamic Religious Studies", grade: "B3" },
+      { id: 15, subject: "Agriculture", grade: "C4" },
+      { id: 16, subject: "Business Management", grade: "B3" },
+      { id: 17, subject: "Financial Accounting", grade: "B2" },
+      { id: 18, subject: "Principles of Cost Accounting", grade: "C5" },
+      { id: 19, subject: "Commerce", grade: "C6" },
+      { id: 20, subject: "Food and Nutrition", grade: "B3" },
+      { id: 21, subject: "Management in Living", grade: "C4" },
+      { id: 22, subject: "Physical Health Education", grade: "B3" },
+      { id: 23, subject: "Technical Drawing", grade: "C5" },
+      { id: 24, subject: "Engineering Science", grade: "B3" },
+      { id: 25, subject: "Science (Core)", grade: "B2" },
     ]);
+    setVisibleSubjects(5);
   };
 
   const handleRandomize = () => {
@@ -114,6 +154,14 @@ const WassceInterpreter = () => {
   };
 
   const { averageScore, passRate } = calculateStats();
+
+  const showMoreSubjects = () => {
+    setVisibleSubjects(results.length);
+  };
+
+  const showLessSubjects = () => {
+    setVisibleSubjects(5);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-blue-800 to-purple-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -163,8 +211,8 @@ const WassceInterpreter = () => {
                 )}
               </div>
 
-              <div className="space-y-4 max-h-auto overflow-y-auto pr-2">
-                {results.map((result) => (
+              <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                {results.slice(0, visibleSubjects).map((result) => (
                   <div
                     key={result.id}
                     className={`p-4 border rounded-lg transition-all duration-300 ${
@@ -194,19 +242,31 @@ const WassceInterpreter = () => {
                             </option>
                           ))}
                         </select>
-
-                        {/* Interpretation Badge */}
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold border ${
-                            gradeColors[result.grade]
-                          } min-w-[100px] text-center`}
-                        >
-                          {gradeInterpretation[result.grade]}
-                        </span>
                       </div>
                     </div>
                   </div>
                 ))}
+
+                {/* Show More/Less Buttons */}
+                {results.length > 5 && (
+                  <div className="text-center mt-4">
+                    {visibleSubjects <= 5 ? (
+                      <button
+                        onClick={showMoreSubjects}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      >
+                        Show all {results.length} subjects ↓
+                      </button>
+                    ) : (
+                      <button
+                        onClick={showLessSubjects}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                      >
+                        Show only 5 subjects ↑
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -285,7 +345,7 @@ const WassceInterpreter = () => {
               <h4 className="text-lg font-semibold text-gray-700 mb-3">
                 Subject Breakdown
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {results.map((r) => (
                   <div
                     key={r.id}
@@ -306,29 +366,6 @@ const WassceInterpreter = () => {
                 ))}
               </div>
             </div>
-
-            {/* Legend */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-700 mb-3">
-                Grade Legend
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(gradeInterpretation).map(
-                  ([grade, interpretation]) => (
-                    <div key={grade} className="flex items-center">
-                      <span
-                        className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold mr-2 ${gradeColors[grade]}`}
-                      >
-                        {grade}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {interpretation}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -336,4 +373,4 @@ const WassceInterpreter = () => {
   );
 };
 
-export default WassceInterpreter;
+export default ResultInterpreter;
