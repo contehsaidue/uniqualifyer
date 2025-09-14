@@ -10,17 +10,9 @@ import {
 import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
 import { useEffect, useState } from "react";
-import { ApplicationStatus, UserRole } from "@prisma/client";
+import { ApplicationStatus, RequirementType, UserRole } from "@prisma/client";
 import { toast } from "sonner";
-import {
-  Search,
-  Filter,
-  MoreHorizontal,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Eye,
-} from "lucide-react";
+import { Search, Filter, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
 import { GenericTable } from "@/components/shared/GenericTable";
 import {
   getApplicationsForDepartmentAdmin,
@@ -63,6 +55,12 @@ interface Application {
         name: string;
       };
     };
+    requirements: Array<{
+      type: RequirementType;
+      subject: string;
+      minGrade: string;
+      description: string;
+    }>;
   };
   notes: Array<{
     id: string;
@@ -92,7 +90,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect("/auth/login");
   }
 
-  // Only department admins can access this page
   if (user.role !== UserRole.DEPARTMENT_ADMINISTRATOR) {
     throw redirect("/dashboard");
   }
@@ -489,25 +486,6 @@ export default function DepartmentAdminApplicationManagement() {
           onSubmit={handleSearch}
           className="flex flex-col md:flex-row gap-4"
         >
-          <div className="flex-1">
-            <label htmlFor="search" className="sr-only">
-              Search applications
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                name="search"
-                id="search"
-                defaultValue={searchQuery}
-                placeholder="Search by student name or email..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
           <div className="w-full md:w-48">
             <label htmlFor="status" className="sr-only">
               Filter by status
@@ -566,6 +544,45 @@ export default function DepartmentAdminApplicationManagement() {
               <h2 className="text-2xl font-bold mb-4">Application Details</h2>
 
               <div className="space-y-6">
+                {/* Program Information */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Program Information
+                  </h3>
+                  <div className="bg-gray-50 p-4 rounded-md">
+                    <p className="font-medium">
+                      {currentApplication.program.name}
+                    </p>
+                    <p className="text-gray-600">
+                      {currentApplication.program.department.name} -{" "}
+                      {currentApplication.program.department.university.name}
+                    </p>
+
+                    {/* Program Requirements */}
+                    {currentApplication.program.requirements &&
+                      currentApplication.program.requirements.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-medium text-gray-900 mb-2">
+                            Requirements:
+                          </h4>
+                          <ul className="space-y-2">
+                            {currentApplication.program.requirements.map(
+                              (requirement, index) => (
+                                <li
+                                  key={index}
+                                  className="text-sm text-gray-600"
+                                >
+                                  •
+                                  {requirement.subject &&
+                                    ` ${requirement.subject} - Minimum grade required : ${requirement.minGrade}`}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                  </div>
+                </div>
                 {/* Student Information */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -580,27 +597,10 @@ export default function DepartmentAdminApplicationManagement() {
                     </p>
                   </div>
                 </div>
-
-                {/* Program Information */}
+                {/*Result */}
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Program Information
-                  </h3>
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <p className="font-medium">
-                      {currentApplication.program.name}
-                    </p>
-                    <p className="text-gray-600">
-                      {currentApplication.program.department.name} -
-                      {currentApplication.program.department.university.name}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Qualifications */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Qualifications
+                    Result
                   </h3>
                   <div className="bg-gray-50 p-4 rounded-md">
                     {currentApplication.student.qualifications.length > 0 ? (
@@ -611,9 +611,6 @@ export default function DepartmentAdminApplicationManagement() {
                               key={index}
                               className="border-b border-gray-200 pb-3 last:border-0 last:pb-0"
                             >
-                              <p className="font-medium capitalize">
-                                {qual.type.toLowerCase().replace("_", " ")}
-                              </p>
                               <p>
                                 {qual.subject} - {qual.grade}
                               </p>

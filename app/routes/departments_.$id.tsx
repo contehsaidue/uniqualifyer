@@ -163,29 +163,6 @@ export default function DepartmentDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Department Facts */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Department Information
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center">
-                  <BookOpen className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">
-                    {department.Program?.length || 0} Programs
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">500+ Students</span>
-                </div>
-                <div className="flex items-center">
-                  <GraduationCap className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">25+ Faculty Members</span>
-                </div>
-              </div>
-            </div>
-
             {/* University Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-4">
@@ -198,41 +175,10 @@ export default function DepartmentDetail() {
                 <p>
                   <strong>Department Code:</strong> {department.code}
                 </p>
-                <p>
-                  <strong>Established:</strong> 1985
-                </p>
+
                 <p>
                   <strong>Accreditation:</strong> Fully Accredited
                 </p>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Contact Information
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">
-                    {department.code.toLowerCase()}@
-                    {department.university.name
-                      .toLowerCase()
-                      .replace(/\s+/g, "-")}
-                    .edu
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">+1 (555) 765-4321</span>
-                </div>
-                <div className="text-gray-600">
-                  <strong>Office Hours:</strong> Mon-Fri, 8:30AM-5:00PM
-                </div>
-                <div className="text-gray-600">
-                  <strong>Location:</strong> Science Building, Room 301
-                </div>
               </div>
             </div>
 

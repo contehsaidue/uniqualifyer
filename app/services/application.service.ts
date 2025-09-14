@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { ApplicationStatus, UserRole } from '@prisma/client';
+import { $Enums, ApplicationStatus, RequirementType, UserRole } from '@prisma/client';
 
 interface UserSession {
   id: string;
@@ -24,12 +24,7 @@ interface UserSession {
   updatedAt?: Date;
 }
 
-interface CreateApplicationInput {
-  userId: string;
-  programId: string;
-  status?: ApplicationStatus;
-}
-
+// Base interfaces
 interface ApplicationBase {
   id: string;
   studentId: string;
@@ -40,66 +35,83 @@ interface ApplicationBase {
   updatedAt: Date;
 }
 
+interface Qualification {
+  type: $Enums.QualificationType;
+  subject: string;
+  grade: string;
+  verified: boolean;
+}
+
+// User and student related interfaces
+interface UserBase {
+  id: string;
+  name: string;
+  email: string;
+  role?: UserRole;
+}
+
+interface StudentProfile {
+  id: string;
+  user: UserBase;
+  qualifications?: Qualification[];
+}
+
+// Program and university hierarchy
+interface University {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Department {
+  id: string;
+  name: string;
+  university: University;
+}
+
+interface ProgramRequirement {
+  type: RequirementType;
+  subject: string;
+  minGrade: string;
+  description: string;
+}
+
+interface Program {
+  id: string;
+  name: string;
+  department: Department;
+  requirements?: ProgramRequirement[];
+}
+
+// Note interface
+interface ApplicationNote {
+  id: string;
+  content: string;
+  internalOnly: boolean;
+  createdAt: Date;
+  author: UserBase;
+}
+
+// Application composition interfaces
 interface ApplicationWithStudent extends ApplicationBase {
-  student: {
-    id: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  };
+  student: StudentProfile;
 }
 
 interface ApplicationWithProgram extends ApplicationBase {
-  program: {
-    id: string;
-    name: string;
-    department: {
-      id: string;
-      name: string;
-      university: {
-        id: string;
-        name: string;
-        slug: string;
-      };
-    };
-  };
+  program: Program;
 }
 
 interface ApplicationWithRelations extends ApplicationBase {
-  student: {
-    id: string;
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  };
-  program: {
-    id: string;
-    name: string;
-    department: {
-      id: string;
-      name: string;
-      university: {
-        id: string;
-        name: string;
-        slug: string;
-      };
-    };
-  };
-  notes: Array<{
-    id: string;
-    content: string;
-    internalOnly: boolean;
-    createdAt: Date;
-    author: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  }>;
+  student: StudentProfile;
+  program: Program;
+  notes: ApplicationNote[];
+}
+
+// Input interfaces
+interface CreateApplicationInput {
+  userId: string;
+  programId: string;
+  status?: ApplicationStatus;
 }
 
 interface UpdateApplicationInput {
@@ -424,44 +436,39 @@ export const getApplicationsByStudentId = async (
   currentUser: UserSession,
   options?: {
     includeProgram?: boolean;
-      status?: ApplicationStatus | ApplicationStatus[]; // Allow single status or array
+    includeNotes?: boolean; // Add this option
+    status?: ApplicationStatus | ApplicationStatus[]; 
     page?: number;
     limit?: number;
   }
 ): Promise<{
-  applications: (ApplicationBase | ApplicationWithProgram)[];
+  applications: (ApplicationBase | (ApplicationWithProgram & { notes?: ApplicationNote[] }))[];
   total: number;
   page: number;
   totalPages: number;
 }> => {
-  // Authorization checks
+  // Authorization checks (existing code remains the same)
   if (currentUser.role === UserRole.STUDENT) {
     if (currentUser?.id !== userId) {
       throw new Error('Unauthorized: You can only access your own applications');
     }
   } else if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
     // Department admins can only access applications in their department
-    // We'll check this in the where clause
   }
 
-
-  // Get studentId from student model using userId
   const student = await prisma.student.findUnique({
     where: { userId: userId },
     select: { id: true }
   });
 
- if (!student) {
-      throw new Error("Student record not found for this user");
-    }
+  if (!student) {
+    throw new Error("Student record not found for this user");
+  }
 
-  const studentId = student?.id;
+  const studentId = student.id;
+  let whereClause: any = { studentId };
 
-  let whereClause: any = {
-    studentId
-  };
-
-  // Department admins can only see applications in their department
+  // Department admin check (existing code)
   if (currentUser.role === UserRole.DEPARTMENT_ADMINISTRATOR) {
     if (!currentUser.department?.id) {
       throw new Error('Department administrator must be assigned to a department');
@@ -473,15 +480,14 @@ export const getApplicationsByStudentId = async (
 
   if (options?.status) {
     if (Array.isArray(options.status)) {
-      whereClause.status = {
-        in: options.status
-      };
+      whereClause.status = { in: options.status };
     } else {
       whereClause.status = options.status;
     }
   }
 
   const includeProgram = options?.includeProgram ?? true;
+  const includeNotes = options?.includeNotes ?? false; 
 
   // Pagination
   const page = options?.page ?? 1;
@@ -501,6 +507,21 @@ export const getApplicationsByStudentId = async (
             }
           }
         } : false,
+        notes: includeNotes ? {
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        } : false,
       },
       orderBy: {
         createdAt: 'desc'
@@ -511,7 +532,7 @@ export const getApplicationsByStudentId = async (
     prisma.application.count({ where: whereClause })
   ]);
 
-  // Transform the data to match our interfaces
+  // Transform the data
   const transformedApplications = applications.map(app => {
     const baseApplication = {
       id: app.id,
@@ -523,26 +544,40 @@ export const getApplicationsByStudentId = async (
       updatedAt: app.updatedAt
     };
 
-    if (includeProgram) {
-      return {
-        ...baseApplication,
-        program: {
-          id: app.program!.id,
-          name: app.program!.name,
-          department: {
-            id: app.program!.department.id,
-            name: app.program!.department.name,
-            university: {
-              id: app.program!.department.university.id,
-              name: app.program!.department.university.name,
-              slug: app.program!.department.university.slug
-            }
+    const result: any = { ...baseApplication };
+
+    if (includeProgram && app.program) {
+      result.program = {
+        id: app.program.id,
+        name: app.program.name,
+        department: {
+          id: app.program.department.id,
+          name: app.program.department.name,
+          university: {
+            id: app.program.department.university.id,
+            name: app.program.department.university.name,
+            slug: app.program.department.university.slug
           }
         }
-      } as ApplicationWithProgram;
+      };
     }
 
-    return baseApplication as ApplicationBase;
+    if (includeNotes) {
+      result.notes = app.notes.map(note => ({
+        id: note.id,
+        content: note.content,
+        internalOnly: note.internalOnly,
+        createdAt: note.createdAt,
+        author: {
+          id: note.author.id,
+          name: note.author.name,
+          email: note.author.email,
+          role: note.author.role
+        }
+      }));
+    }
+
+    return result;
   });
 
   return {
@@ -1123,7 +1158,6 @@ export const withdrawApplication = async (
   });
 };
 
-
 /**
  * Get applications for department admin with filtering options
  */
@@ -1168,6 +1202,7 @@ export const getApplicationsForDepartmentAdmin = async (
       },
       {
         student: {
+          
           user: {
             email: {
               contains: searchQuery,
@@ -1224,7 +1259,8 @@ export const getApplicationsForDepartmentAdmin = async (
             select: {
               id: true,
               name: true,
-              role: true
+              email: true,
+              role: true,
             }
           }
         },
@@ -1238,53 +1274,56 @@ export const getApplicationsForDepartmentAdmin = async (
     }
   });
 
-  // Transform the data to match our interface
   return applications.map(app => ({
-    id: app.id,
-    studentId: app.studentId,
-    programId: app.programId,
-    status: app.status,
-    submittedAt: app.submittedAt,
-    createdAt: app.createdAt,
-    updatedAt: app.updatedAt,
-    student: {
-      user: {
-        id: app.student.user.id,
-        name: app.student.user.name,
-        email: app.student.user.email
-      },
-      qualifications: app.student.qualifications.map(q => ({
-        type: q.type,
-        subject: q.subject,
-        grade: q.grade,
-        verified: q.verified
-      }))
+  id: app.id,
+  studentId: app.studentId,
+  programId: app.programId,
+  status: app.status,
+  submittedAt: app.submittedAt,
+  createdAt: app.createdAt,
+  updatedAt: app.updatedAt,
+  student: {
+    id: app.student.id,
+    user: {
+      id: app.student.user.id,
+      name: app.student.user.name,
+      email: app.student.user.email
     },
-    program: {
-      id: app.program.id,
-      name: app.program.name,
-      department: {
-        id: app.program.department.id,
-        name: app.program.department.name,
-        university: {
-          id: app.program.department.university.id,
-          name: app.program.department.university.name,
-          slug: app.program.department.university.slug
-        }
-      }
-    },
-    notes: app.notes.map(n => ({
-      id: n.id,
-      content: n.content,
-      internalOnly: n.internalOnly,
-      createdAt: n.createdAt,
-      author: {
-        id: n.author.id,
-        name: n.author.name,
-        role: n.author.role as UserRole
-      }
+    qualifications: app.student.qualifications.map(q => ({
+      type: q.type,
+      subject: q.subject,
+      grade: q.grade,
+      verified: q.verified
     }))
-  }));
+  },
+  program: {
+    id: app.program.id,
+    name: app.program.name,
+    department: {
+      id: app.program.department.id,
+      name: app.program.department.name,
+      university: {
+        id: app.program.department.university.id,
+        name: app.program.department.university.name,
+        slug: app.program.department.university.slug
+      }
+    }
+  },
+  notes: app.notes.map(n => ({
+    id: n.id,
+    content: n.content,
+    internalOnly: n.internalOnly,
+    createdAt: n.createdAt,
+    author: {
+      id: n.author.id,
+      name: n.author.name,
+      role: n.author.role as UserRole,
+      email: n.author.email || '', 
+ 
+    }
+  }))
+}));
+
 };
 
 /**
@@ -1361,6 +1400,7 @@ export const updateApplicationStatus = async (
             select: {
               id: true,
               name: true,
+              email: true,
               role: true
             }
           }
@@ -1408,6 +1448,7 @@ export const updateApplicationStatus = async (
     createdAt: updatedApplication.createdAt,
     updatedAt: updatedApplication.updatedAt,
     student: {
+      id: updatedApplication.student.id,
       user: {
         id: updatedApplication.student.user.id,
         name: updatedApplication.student.user.name,
@@ -1441,6 +1482,7 @@ export const updateApplicationStatus = async (
       author: {
         id: n.author.id,
         name: n.author.name,
+        email: n.author.email || '',
         role: n.author.role as UserRole
       }
     }))
@@ -1509,6 +1551,14 @@ export const getApplicationDetails = async (
             include: {
               university: true
             }
+          },
+          requirements: { 
+            select: {
+              type: true,
+              subject: true,
+              minGrade: true,
+              description: true
+            }
           }
         }
       },
@@ -1518,6 +1568,7 @@ export const getApplicationDetails = async (
             select: {
               id: true,
               name: true,
+              email: true,
               role: true
             }
           }
@@ -1533,51 +1584,59 @@ export const getApplicationDetails = async (
     throw new Error('Application details not found');
   }
 
-  // Return the application with all relations
-  return {
-    id: applicationDetails.id,
-    studentId: applicationDetails.studentId,
-    programId: applicationDetails.programId,
-    status: applicationDetails.status,
-    submittedAt: applicationDetails.submittedAt,
-    createdAt: applicationDetails.createdAt,
-    updatedAt: applicationDetails.updatedAt,
-    student: {
-      user: {
-        id: applicationDetails.student.user.id,
-        name: applicationDetails.student.user.name,
-        email: applicationDetails.student.user.email
-      },
-      qualifications: applicationDetails.student.qualifications.map(q => ({
-        type: q.type,
-        subject: q.subject,
-        grade: q.grade,
-        verified: q.verified
-      }))
+
+return {
+  id: applicationDetails.id,
+  studentId: applicationDetails.studentId,
+  programId: applicationDetails.programId,
+  status: applicationDetails.status,
+  submittedAt: applicationDetails.submittedAt,
+  createdAt: applicationDetails.createdAt,
+  updatedAt: applicationDetails.updatedAt,
+  student: {
+    id: applicationDetails.student.id,
+    user: {
+      id: applicationDetails.student.user.id,
+      name: applicationDetails.student.user.name,
+      email: applicationDetails.student.user.email
     },
-    program: {
-      id: applicationDetails.program.id,
-      name: applicationDetails.program.name,
-      department: {
-        id: applicationDetails.program.department.id,
-        name: applicationDetails.program.department.name,
-        university: {
-          id: applicationDetails.program.department.university.id,
-          name: applicationDetails.program.department.university.name,
-          slug: applicationDetails.program.department.university.slug
-        }
-      }
-    },
-    notes: applicationDetails.notes.map(n => ({
-      id: n.id,
-      content: n.content,
-      internalOnly: n.internalOnly,
-      createdAt: n.createdAt,
-      author: {
-        id: n.author.id,
-        name: n.author.name,
-        role: n.author.role as UserRole
-      }
+    qualifications: applicationDetails.student.qualifications.map(q => ({
+      type: q.type,
+      subject: q.subject,
+      grade: q.grade,
+      verified: q.verified
     }))
-  };
+  },
+  program: {
+    id: applicationDetails.program.id,
+    name: applicationDetails.program.name,
+    department: {
+      id: applicationDetails.program.department.id,
+      name: applicationDetails.program.department.name,
+      university: {
+        id: applicationDetails.program.department.university.id,
+        name: applicationDetails.program.department.university.name,
+        slug: applicationDetails.program.department.university.slug
+      }
+    },
+    requirements: applicationDetails.program.requirements.map(r => ({
+      type: r.type,
+      subject: r.subject || '',
+      minGrade: r.minGrade || '',
+      description: r.description
+    }))
+  },
+  notes: applicationDetails.notes.map(n => ({
+    id: n.id,
+    content: n.content,
+    internalOnly: n.internalOnly,
+    createdAt: n.createdAt,
+    author: {
+      id: n.author.id,
+      name: n.author.name,
+      email: n.author.email || '', 
+      role: n.author.role as UserRole
+    }
+  }))
+};
 };

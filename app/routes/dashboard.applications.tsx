@@ -25,6 +25,7 @@ import {
   Building,
   BookOpen,
   Send,
+  MessageSquare,
 } from "lucide-react";
 import { GenericTable } from "@/components/shared/GenericTable";
 import {
@@ -52,12 +53,28 @@ interface Application {
     id: string;
     name: string;
     department: {
+      id: string;
       name: string;
       university: {
+        id: string;
         name: string;
+        slug: string;
       };
     };
   };
+  notes?: Array<{
+    // Add notes property
+    id: string;
+    content: string;
+    internalOnly: boolean;
+    createdAt: string;
+    author: {
+      id: string;
+      name: string;
+      email: string;
+      role?: string;
+    };
+  }>;
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -100,6 +117,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
           ApplicationStatus.REJECTED,
           ApplicationStatus.UNDER_REVIEW,
         ],
+        includeNotes: true, // Add this to include notes
       }
     );
 
@@ -513,7 +531,7 @@ export default function StudentApplicationManagement() {
       {/* Application Details Modal */}
       {isDetailsModalOpen && selectedApplication && (
         <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -521,7 +539,8 @@ export default function StudentApplicationManagement() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Application Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="flex items-center">
                   <BookOpen className="h-5 w-5 text-blue-500 mr-3" />
                   <div>
@@ -571,6 +590,51 @@ export default function StudentApplicationManagement() {
                 </div>
               </div>
 
+              {/* Notes Section */}
+              {selectedApplication.notes &&
+                selectedApplication.notes.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
+                      Application Notes
+                    </h3>
+                    <div className="space-y-4">
+                      {selectedApplication.notes.map((note) => (
+                        <div
+                          key={note.id}
+                          className={`p-4 rounded-lg border ${
+                            note.internalOnly
+                              ? "bg-orange-50 border-orange-200"
+                              : "bg-blue-50 border-blue-200"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {note.author.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(note.createdAt).toLocaleDateString()}{" "}
+                                at{" "}
+                                {new Date(note.createdAt).toLocaleTimeString()}
+                              </p>
+                            </div>
+                            {note.internalOnly && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                Internal Only
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-700 whitespace-pre-wrap">
+                            {note.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Action Buttons */}
               <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
                 <button
                   type="button"

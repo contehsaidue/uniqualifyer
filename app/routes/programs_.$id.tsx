@@ -251,33 +251,6 @@ export default function ProgramDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Application Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Application Information
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    Application Status
-                  </p>
-                  <p className="text-gray-600">Open for 2024 intake</p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Next Deadline</p>
-                  <p className="text-gray-600">January 15, 2024</p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Program Start</p>
-                  <p className="text-gray-600">September 2024</p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Study Mode</p>
-                  <p className="text-gray-600">Full-time</p>
-                </div>
-              </div>
-            </div>
-
             {/* Department Information */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-4">
@@ -301,45 +274,19 @@ export default function ProgramDetail() {
               </div>
             </div>
 
-            {/* Contact Information */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Contact Information
-              </h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>
-                  <strong>Program Advisor:</strong> Dr. Jane Smith
-                </p>
-                <p>
-                  <strong>Email:</strong>{" "}
-                  {program.department?.code?.toLowerCase()}@
-                  {program.department?.university?.name
-                    ?.toLowerCase()
-                    .replace(/\s+/g, "-")}
-                  .edu
-                </p>
-                <p>
-                  <strong>Phone:</strong> +1 (555) 987-6543
-                </p>
-                <p>
-                  <strong>Office Hours:</strong> Mon-Fri, 9AM-5PM
-                </p>
-              </div>
-            </div>
-
             {/* Application CTA */}
             <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
               <h3 className="font-semibold text-blue-900 mb-3">
                 Ready to Apply?
               </h3>
               <p className="text-sm text-blue-700 mb-4">
-                Start your application for the {program.name} program today.
+                Try the program matching simulator today.
               </p>
               <Link
-                to={`/auth/login`}
+                to={`/`}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:blue-700 transition-colors text-center block"
               >
-                Start Application
+                Start Matching
               </Link>
             </div>
           </div>

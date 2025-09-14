@@ -175,80 +175,6 @@ export default function UniversityDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Facts */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                University Facts
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <Building2 className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-600">
-                    {university.departments?.length || 0} Departments
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <BookOpen className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-600">
-                    {totalPrograms} Programs
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-600">
-                    10,000+ Students
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <GraduationCap className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-600">
-                    500+ Faculty members
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                Contact Information
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">
-                    admissions@{university.slug}.edu
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">+1 (555) 123-4567</span>
-                </div>
-                <div className="flex items-center">
-                  <Globe className="w-4 h-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">
-                    www.{university.slug}.edu
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Application CTA */}
-            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-              <h3 className="font-semibold text-blue-900 mb-3">
-                Interested in Applying?
-              </h3>
-              <p className="text-sm text-blue-700 mb-4">
-                Explore our programs and start your application process today.
-              </p>
-              <Link
-                to="/programs"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors text-center block"
-              >
-                Browse Programs
-              </Link>
-            </div>
-
             {/* Departments Quick Links */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <h3 className="font-semibold text-gray-900 mb-4">Departments</h3>
@@ -272,6 +198,21 @@ export default function UniversityDetail() {
                     </Link>
                   )}
               </div>
+            </div>
+            {/* Application CTA */}
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-3">
+                Interested in Applying?
+              </h3>
+              <p className="text-sm text-blue-700 mb-4">
+                Explore our programs and start your application process today.
+              </p>
+              <Link
+                to="/programs"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors text-center block"
+              >
+                Browse Programs
+              </Link>
             </div>
           </div>
         </div>
