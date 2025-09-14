@@ -283,10 +283,10 @@ export default function ProgramDetail() {
                 Try the program matching simulator today.
               </p>
               <Link
-                to={`/`}
+                to={`/auth/login`}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:blue-700 transition-colors text-center block"
               >
-                Start Matching
+                Match me to a program
               </Link>
             </div>
           </div>
