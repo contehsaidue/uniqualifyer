@@ -1,11 +1,8 @@
 {
   "include": [
-    "**/*.ts",
+    "**/*.ts", 
     "**/*.tsx",
-    "**/.server/**/*.ts",
-    "**/.server/**/*.tsx",
-    "**/.client/**/*.ts",
-    "**/.client/**/*.tsx"
+    ".remix/types/**/*.ts"
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -21,17 +18,14 @@
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-       "~/*": ["./app/*"],
-      "@/*": ["./app/*"], 
+      "~/*": ["./app/*"],
+      "@/*": ["./app/*"],
       "@models/*": ["app/models/*"],
-       "remix-utils/client-only": ["node_modules/remix-utils/client-only"]
+      "remix-utils/client-only": ["node_modules/remix-utils/client-only"]
     },
-
-    // Vite takes care of building everything, not tsc.
     "noEmit": true
   }
 }

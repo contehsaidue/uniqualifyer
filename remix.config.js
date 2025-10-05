@@ -9,11 +9,17 @@ module.exports = {
   },
   serverModuleFormat: "esm",
   serverPlatform: "node",
-  // Remove serverBuildTarget as it's deprecated in v2
   server: process.env.NODE_ENV === "production" ? "./server.js" : undefined,
-  tailwind: true,
-  postcss: true,
   
-  // Add publicPath configuration
-  publicPath: process.env.NODE_ENV === "production" ? "/build/" : "/build/",
+  // Explicitly tell Remix to not bundle server dependencies
+  serverDependenciesToBundle: [
+    // Only add packages that are safe for browser
+    // Keep this empty or only add browser-safe packages
+  ],
+  
+  // Add this to be explicit about build directories
+  appDirectory: "app",
+  assetsBuildDirectory: "public/build",
+  publicPath: "/build/",
+  serverBuildPath: "build/index.js",
 };
