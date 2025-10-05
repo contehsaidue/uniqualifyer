@@ -104,7 +104,6 @@ export default function Index() {
         <HowItWorks />
         <WassceInterpreter />
         <ProgramMatcher />
-
         <Footer />
       </div>
     </>

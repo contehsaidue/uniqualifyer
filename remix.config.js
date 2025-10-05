@@ -7,9 +7,13 @@ module.exports = {
     v2_errorBoundary: true,
     v2_normalizeFormMethod: true,
   },
- serverModuleFormat: "esm",
+  serverModuleFormat: "esm",
   serverPlatform: "node",
-  serverBuildTarget: "vercel",
-  // Vercel-specific config
-  server: process.env.NODE_ENV === "production" ? "./server.js" : undefined
+  // Remove serverBuildTarget as it's deprecated in v2
+  server: process.env.NODE_ENV === "production" ? "./server.js" : undefined,
+  tailwind: true,
+  postcss: true,
+  
+  // Add publicPath configuration
+  publicPath: process.env.NODE_ENV === "production" ? "/build/" : "/build/",
 };
