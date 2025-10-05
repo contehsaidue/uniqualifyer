@@ -138,11 +138,12 @@ interface SidebarFilters {
   department: string;
   programType: string;
   minRating: number;
+  location: string;
 }
 
 export default function UniversityExplorer() {
   const data = useLoaderData<typeof loader>();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "universities" | "departments" | "programs"
   >("universities");
@@ -153,6 +154,7 @@ export default function UniversityExplorer() {
     department: "",
     programType: "",
     minRating: 0,
+    location: "",
   });
 
   // Memoized filtered results for better performance
@@ -160,10 +162,14 @@ export default function UniversityExplorer() {
     return data.universities.filter(
       (uni) =>
         (uni.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-          uni.location.toLowerCase().includes(filters.search.toLowerCase())) &&
+          uni.location.toLowerCase().includes(filters.search.toLowerCase()) ||
+          (filters.location &&
+            uni.location
+              .toLowerCase()
+              .includes(filters.location.toLowerCase()))) &&
         uni.rating >= filters.minRating
     );
-  }, [data.universities, filters.search, filters.minRating]);
+  }, [data.universities, filters.search, filters.minRating, filters.location]);
 
   const filteredDepartments = useMemo(() => {
     return data.departments.filter(
@@ -199,6 +205,7 @@ export default function UniversityExplorer() {
       department: "",
       programType: "",
       minRating: 0,
+      location: "",
     });
   }, []);
 
@@ -230,10 +237,10 @@ export default function UniversityExplorer() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back to Home Button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         <Link
           to="/"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium mb-4"
+          className="inline-flex items-center text-sm sm:text-base text-gray-600 hover:text-gray-900 font-medium mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
@@ -248,82 +255,99 @@ export default function UniversityExplorer() {
             backgroundImage: "url('/inner-pages/3.jpeg')",
           }}
         />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 sm:mb-6">
               Discover Your Perfect University
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
               Explore thousands of programs, departments, and universities to
               find your ideal academic path
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <button
                 onClick={() => navigate("/universities")}
-                className="bg-white text-blue-900 border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center"
+                className="bg-white text-blue-900 border-2 border-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center text-sm sm:text-base"
               >
-                View Universities <ArrowRight className="ml-2 w-5 h-5" />
+                View Universities{" "}
+                <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={() => navigate("/departments")}
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors"
+                className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors text-sm sm:text-base"
               >
                 View Departments
-              </button>
-              <button
-                onClick={() => navigate("/programs")}
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors flex items-center justify-center"
-              >
-                Browse Programs
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm">
-            <div className="text-3xl font-bold text-blue-900 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <div className="bg-white rounded-lg p-4 sm:p-6 text-center shadow-sm">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-900 mb-1 sm:mb-2">
               {data.universities.length}+
             </div>
-            <div className="text-gray-600">Universities</div>
+            <div className="text-sm sm:text-base text-gray-600">
+              Universities
+            </div>
           </div>
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm">
-            <div className="text-3xl font-bold text-blue-900 mb-2">
+          <div className="bg-white rounded-lg p-4 sm:p-6 text-center shadow-sm">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-900 mb-1 sm:mb-2">
               {data.departments.length}+
             </div>
-            <div className="text-gray-600">Departments</div>
+            <div className="text-sm sm:text-base text-gray-600">
+              Departments
+            </div>
           </div>
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm">
-            <div className="text-3xl font-bold text-blue-900 mb-2">
+          <div className="bg-white rounded-lg p-4 sm:p-6 text-center shadow-sm">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-900 mb-1 sm:mb-2">
               {data.programs.length}+
             </div>
-            <div className="text-gray-600">Programs</div>
+            <div className="text-sm sm:text-base text-gray-600">Programs</div>
           </div>
         </div>
 
         {/* Mobile sidebar toggle */}
-        <div className="lg:hidden mb-4">
+        <div className="sm:hidden mb-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="flex items-center text-sm font-medium text-gray-700 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm"
+            className="flex items-center justify-center w-full text-sm font-medium text-gray-700 bg-white px-4 py-3 rounded-lg border border-gray-300 shadow-sm"
           >
             <Filter className="w-4 h-4 mr-2" />
             {sidebarOpen ? "Hide Filters" : "Show Filters"}
           </button>
         </div>
 
-        <div className="flex gap-8">
-          {/* Sidebar */}
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+          {/* Sidebar - Mobile overlay, desktop sidebar */}
           <div
-            className={`bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300 ${
-              sidebarOpen ? "w-80" : "w-0 opacity-0 lg:opacity-100 lg:w-20"
-            } lg:block ${
-              sidebarOpen ? "" : "lg:hover:w-80 lg:hover:opacity-100"
-            }`}
+            className={`
+              bg-white rounded-lg shadow-sm border border-gray-200 transition-all duration-300
+              ${
+                sidebarOpen
+                  ? "w-full h-auto max-h-[80vh] overflow-y-auto fixed sm:relative top-0 left-0 z-50 sm:z-auto m-4 sm:m-0"
+                  : "hidden lg:block lg:w-20 lg:h-fit"
+              }
+              lg:sticky lg:top-4 lg:self-start
+              ${!sidebarOpen ? "lg:hover:w-80 lg:hover:opacity-100" : ""}
+            `}
           >
+            {/* Close button for mobile overlay */}
+            {sidebarOpen && (
+              <div className="sm:hidden flex justify-end p-2 border-b border-gray-200">
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="Close filters"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 {sidebarOpen && (
@@ -333,7 +357,7 @@ export default function UniversityExplorer() {
                 )}
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors hidden lg:block"
                   aria-label={
                     sidebarOpen ? "Collapse filters" : "Expand filters"
                   }
@@ -348,7 +372,7 @@ export default function UniversityExplorer() {
             </div>
 
             {sidebarOpen && (
-              <div className="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="p-4 space-y-6">
                 {/* Search */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -363,12 +387,12 @@ export default function UniversityExplorer() {
                       onChange={(e) =>
                         setFilters({ ...filters, search: e.target.value })
                       }
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     />
                   </div>
                 </div>
 
-                {/* Navigation Tabs */}
+                {/* Navigation Tabs - Mobile optimized */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     View Type
@@ -377,27 +401,40 @@ export default function UniversityExplorer() {
                     {[
                       {
                         id: "universities",
-                        label: "Universities",
+                        label: "Uni",
+                        fullLabel: "Universities",
                         icon: Building2,
                       },
-                      { id: "departments", label: "Departments", icon: Users },
+                      {
+                        id: "departments",
+                        label: "Dept",
+                        fullLabel: "Departments",
+                        icon: Users,
+                      },
                       {
                         id: "programs",
-                        label: "Programs",
+                        label: "Prog",
+                        fullLabel: "Programs",
                         icon: GraduationCap,
                       },
-                    ].map(({ id, label, icon: Icon }) => (
+                    ].map(({ id, label, fullLabel, icon: Icon }) => (
                       <button
                         key={id}
                         onClick={() => setActiveTab(id as any)}
-                        className={`p-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
-                          activeTab === id
-                            ? "bg-blue-100 text-blue-700 border border-blue-200"
-                            : "text-gray-700 hover:bg-gray-100 border border-gray-200"
-                        }`}
+                        className={`
+                          p-2 text-xs sm:text-sm font-medium rounded-lg transition-colors 
+                          flex flex-col items-center justify-center min-h-[60px] sm:min-h-0
+                          ${
+                            activeTab === id
+                              ? "bg-blue-100 text-blue-700 border border-blue-200"
+                              : "text-gray-700 hover:bg-gray-100 border border-gray-200"
+                          }
+                        `}
+                        title={fullLabel}
                       >
-                        <Icon className="w-4 h-4" />
-                        <span className="ml-1 hidden lg:inline">{label}</span>
+                        <Icon className="w-4 h-4 mb-1" />
+                        <span className="text-center">{label}</span>
+                        <span className="sr-only">{fullLabel}</span>
                       </button>
                     ))}
                   </div>
@@ -410,7 +447,7 @@ export default function UniversityExplorer() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Minimum Rating
                       </label>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <input
                           type="range"
                           min="0"
@@ -423,9 +460,9 @@ export default function UniversityExplorer() {
                               minRating: parseFloat(e.target.value),
                             })
                           }
-                          className="w-full"
+                          className="flex-1"
                         />
-                        <span className="text-sm text-gray-600 w-8">
+                        <span className="text-sm text-gray-600 min-w-[40px]">
                           {filters.minRating}+
                         </span>
                       </div>
@@ -437,11 +474,11 @@ export default function UniversityExplorer() {
                       <input
                         type="text"
                         placeholder="Filter by location..."
-                        value={filters.search}
+                        value={filters.location}
                         onChange={(e) =>
-                          setFilters({ ...filters, search: e.target.value })
+                          setFilters({ ...filters, location: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                       />
                     </div>
                   </>
@@ -457,7 +494,7 @@ export default function UniversityExplorer() {
                       onChange={(e) =>
                         setFilters({ ...filters, university: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                     >
                       <option value="">All Universities</option>
                       {universityOptions.map((uni) => (
@@ -483,7 +520,7 @@ export default function UniversityExplorer() {
                             programType: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                       >
                         <option value="">All Types</option>
                         <option value="BACHELOR">Bachelor</option>
@@ -501,7 +538,7 @@ export default function UniversityExplorer() {
                         onChange={(e) =>
                           setFilters({ ...filters, department: e.target.value })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                       >
                         <option value="">All Departments</option>
                         {departmentOptions.map((dept) => (
@@ -529,15 +566,15 @@ export default function UniversityExplorer() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Results Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 capitalize">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 capitalize">
                     {activeTab}
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600">
                     {activeTab === "universities" &&
                       `${filteredUniversities.length} universities found`}
                     {activeTab === "departments" &&
@@ -549,7 +586,7 @@ export default function UniversityExplorer() {
                 {!sidebarOpen && (
                   <button
                     onClick={() => setSidebarOpen(true)}
-                    className="flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors lg:hidden"
+                    className="flex items-center justify-center text-sm text-gray-600 hover:text-gray-800 transition-colors sm:hidden w-full sm:w-auto mt-2 sm:mt-0 py-2 border border-gray-200 rounded-lg"
                   >
                     <Filter className="w-4 h-4 mr-1" />
                     Show filters
@@ -559,7 +596,7 @@ export default function UniversityExplorer() {
             </div>
 
             {/* Results Grid */}
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
               {activeTab === "universities" &&
                 filteredUniversities.map((university) => (
                   <UniversityCard key={university.id} university={university} />
@@ -581,19 +618,19 @@ export default function UniversityExplorer() {
               (activeTab === "departments" &&
                 filteredDepartments.length === 0) ||
               (activeTab === "programs" && filteredPrograms.length === 0) ? (
-                <div className="text-center py-12">
-                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <div className="text-center py-8 sm:py-12">
+                  <Search className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                     No {activeTab} found
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-sm sm:text-base text-gray-600 mb-4 max-w-md mx-auto">
                     Try adjusting your search criteria or browse all {activeTab}
                     .
                   </p>
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base"
                     >
                       Clear all filters
                     </button>
@@ -608,27 +645,28 @@ export default function UniversityExplorer() {
   );
 }
 
-// Sub-components for better organization
 function UniversityCard({ university }: { university: University }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start space-x-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-start space-y-4 space-x-2 sm:space-y-0 sm:space-x-6">
         {university.imageUrl && (
           <img
             src={university.imageUrl}
             alt={university.name}
-            className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0 mx-auto sm:mx-0"
           />
         )}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <div className="flex-1 min-w-0 text-center sm:text-left ml-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
             {university.name}
           </h3>
-          <div className="flex items-center text-gray-600 mb-3">
+          <div className="flex items-center justify-center sm:justify-start text-gray-600 mb-3">
             <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="truncate">{university.location}</span>
+            <span className="truncate text-sm sm:text-base">
+              {university.location}
+            </span>
           </div>
-          <div className="flex items-center mb-4">
+          <div className="flex items-center justify-center sm:justify-start mb-4">
             <div className="flex">
               {Array.from({ length: 5 }, (_, i) => (
                 <Star
@@ -645,16 +683,18 @@ function UniversityCard({ university }: { university: University }) {
               ({university.rating.toFixed(1)}/5)
             </span>
           </div>
-          <p className="text-gray-700 mb-4 line-clamp-2">
+          <p className="text-gray-700 mb-4 line-clamp-2 text-sm sm:text-base">
             {university.description}
           </p>
-          <Link
-            to={`/universities/${university.slug}`}
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium group"
-          >
-            View details
-            <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex justify-center sm:justify-start">
+            <Link
+              to={`/universities/${university.slug}`}
+              className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base group"
+            >
+              View details
+              <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -663,27 +703,29 @@ function UniversityCard({ university }: { university: University }) {
 
 function DepartmentCard({ department }: { department: Department }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
             {department.name}
           </h3>
-          <p className="text-gray-600 font-mono text-sm mb-2">
+          <p className="text-gray-600 font-mono text-xs sm:text-sm mb-2">
             {department.code}
           </p>
-          <p className="text-sm text-gray-500">
-            <Building2 className="w-4 h-4 inline mr-1" />
+          <p className="text-xs sm:text-sm text-gray-500">
+            <Building2 className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
             {department.university.name}
           </p>
         </div>
-        <Link
-          to={`/departments/${department.id}`}
-          className="ml-4 inline-flex items-center text-blue-600 hover:text-blue-700 font-medium group whitespace-nowrap"
-        >
-          View Programs
-          <ExternalLink className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
-        </Link>
+        <div className="flex justify-center sm:justify-end">
+          <Link
+            to={`/departments/${department.id}`}
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm group whitespace-nowrap"
+          >
+            View Programs
+            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 ml-1 group-hover:scale-110 transition-transform" />
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -691,34 +733,36 @@ function DepartmentCard({ department }: { department: Department }) {
 
 function ProgramCard({ program }: { program: Program }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
             {program.name}
           </h3>
-          <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-            <span className="flex items-center">
-              <Award className="w-4 h-4 mr-1" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 text-xs sm:text-sm text-gray-600 mb-2">
+            <span className="flex items-center justify-center sm:justify-start">
+              <Award className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               {program.degreeType.toLowerCase()}
             </span>
-            <span className="flex items-center">
-              <Calendar className="w-4 h-4 mr-1" />
+            <span className="flex items-center justify-center sm:justify-start">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               {program.duration}
             </span>
           </div>
-          <p className="text-sm text-gray-500">
-            <BookOpen className="w-4 h-4 inline mr-1" />
+          <p className="text-xs sm:text-sm text-gray-500">
+            <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
             {program.department.name} • {program.department.university.name}
           </p>
         </div>
-        <Link
-          to={`/programs/${program.id}`}
-          className="ml-4 inline-flex items-center text-blue-600 hover:text-blue-700 font-medium group whitespace-nowrap"
-        >
-          Learn More
-          <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-        </Link>
+        <div className="flex justify-center sm:justify-end">
+          <Link
+            to={`/programs/${program.id}`}
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm group whitespace-nowrap"
+          >
+            Learn More
+            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
     </div>
   );
