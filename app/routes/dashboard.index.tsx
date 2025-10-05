@@ -19,10 +19,6 @@ import {
   ClockIcon,
 } from "lucide-react";
 
-import { fetchSuperAdminAnalyticsData } from "~/utils/super.utils";
-import { fetchDepartmentAdminAnalyticsData } from "~/utils/deptadmin.utils";
-import { fetchStudentAnalyticsData } from "~/utils/applicant.utils";
-
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const refreshToken = session.get("refreshToken");
@@ -45,10 +41,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let departmentAdminAnalytics = null;
 
   if (user.role === USER_ROLES.SUPER_ADMIN) {
+    const { fetchSuperAdminAnalyticsData } = await import(
+      "~/utils/super.utils"
+    );
     analytics = await fetchSuperAdminAnalyticsData();
   } else if (user.role === USER_ROLES.STUDENT) {
+    const { fetchStudentAnalyticsData } = await import(
+      "~/utils/applicant.utils"
+    );
     studentAnalytics = await fetchStudentAnalyticsData(user.id);
   } else if (user.role === USER_ROLES.DEPARTMENT_ADMINISTRATOR) {
+    const { fetchDepartmentAdminAnalyticsData } = await import(
+      "~/utils/deptadmin.utils"
+    );
     departmentAdminAnalytics = await fetchDepartmentAdminAnalyticsData(user.id);
   }
 
