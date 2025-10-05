@@ -7,5 +7,9 @@ module.exports = {
     v2_errorBoundary: true,
     v2_normalizeFormMethod: true,
   },
-  // No custom routes needed when using proper file naming
+ serverModuleFormat: "esm",
+  serverPlatform: "node",
+  serverBuildTarget: "vercel",
+  // Vercel-specific config
+  server: process.env.NODE_ENV === "production" ? "./server.js" : undefined
 };
