@@ -9,13 +9,14 @@
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
-    "vercel-build": "prisma generate && remix build"
+    "vercel-build": "npm install && npx prisma generate && remix build"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
     "@remix-run/node": "^2.16.8",
     "@remix-run/react": "^2.17.0",
     "@remix-run/serve": "^2.17.0",
+       "@remix-run/vercel": "^2.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.2",
