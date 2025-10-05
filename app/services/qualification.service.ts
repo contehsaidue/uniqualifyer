@@ -1,6 +1,6 @@
 
 import { QualificationType, Qualification, UserRole } from "@prisma/client";
-import prisma from '@/lib/prisma';
+import prisma from '~/lib/prisma.server';
 
 interface UserSession {
   id: string;

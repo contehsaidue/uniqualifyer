@@ -10,7 +10,7 @@ import { getSession, destroySession } from "@/utils/session.server";
 import { getUserBySession } from "@/services/auth.service";
 import { useEffect, useState } from "react";
 import { UserRole } from "@prisma/client";
-import prisma from "@/lib/prisma";
+import prisma from "~/lib/prisma.server";
 import {
   createAdminUser,
   getAdminUsers,

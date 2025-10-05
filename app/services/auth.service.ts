@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import prisma from '@/lib/prisma'
+import prisma from '~/lib/prisma.server'
 import { generateTokens, verifyToken } from '@/utils/token.server'
 import { UserRole } from '@prisma/client';
 

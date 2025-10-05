@@ -1,5 +1,5 @@
 
-import prisma from '@/lib/prisma';
+import prisma from '~/lib/prisma.server';
 import bcrypt from 'bcryptjs';
 import { UserRole } from '@prisma/client';
 import type { LoaderFunctionArgs } from "@remix-run/node";

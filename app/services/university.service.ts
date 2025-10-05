@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import prisma from '~/lib/prisma.server';
 import { UserRole } from '@prisma/client';
 
 interface UserSession {

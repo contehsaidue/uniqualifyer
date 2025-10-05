@@ -1,5 +1,5 @@
 
-import prisma from '@/lib/prisma';
+import prisma from '~/lib/prisma.server';
 
 export async function getUniversities() {
   return await prisma.university.findMany({

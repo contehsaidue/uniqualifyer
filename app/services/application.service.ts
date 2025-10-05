@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import prisma from '~/lib/prisma.server';
 import { $Enums, ApplicationStatus, RequirementType, UserRole } from '@prisma/client';
 
 interface UserSession {
