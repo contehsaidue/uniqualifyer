@@ -2,7 +2,10 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession, updateUserPassword } from "@/services/auth.service";
+import {
+  getUserBySession,
+  updateUserPassword,
+} from "~/services/auth.service.server";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Eye, EyeOff, Key } from "lucide-react";

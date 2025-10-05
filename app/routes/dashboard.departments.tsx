@@ -8,7 +8,7 @@ import {
   Link,
 } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession } from "@/services/auth.service";
+import { getUserBySession } from "~/services/auth.service.server";
 import { useEffect, useState } from "react";
 import { UserRole } from "@prisma/client";
 import {

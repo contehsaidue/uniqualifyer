@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession } from "@/services/auth.service";
+import { getUserBySession } from "~/services/auth.service.server";
 import Header from "@/components/shared/Header";
 import Sidebar from "@/components/shared/Sidebar";
 

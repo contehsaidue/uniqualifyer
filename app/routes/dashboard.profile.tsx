@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData, useActionData } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession, updateUser } from "@/services/auth.service";
+import { getUserBySession, updateUser } from "~/services/auth.service.server";
 import { validateEmail } from "@/utils/validators";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { registerUser } from "@/services/auth.service";
+import { registerUser } from "~/services/auth.service.server";
 import { commitSession, getSession } from "@/utils/session.server";
 import { Link } from "@remix-run/react";
 

@@ -4,7 +4,7 @@ import {
   redirect,
 } from "@remix-run/node";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession } from "@/services/auth.service";
+import { getUserBySession } from "~/services/auth.service.server";
 import { useLoaderData } from "@remix-run/react";
 import { USER_ROLES } from "@/utils/constants";
 import StudentDashboard from "./dashboard.applicant";
@@ -42,17 +42,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (user.role === USER_ROLES.SUPER_ADMIN) {
     const { fetchSuperAdminAnalyticsData } = await import(
-      "~/utils/super.utils"
+      "~/utils/super.utils.server"
     );
     analytics = await fetchSuperAdminAnalyticsData();
   } else if (user.role === USER_ROLES.STUDENT) {
     const { fetchStudentAnalyticsData } = await import(
-      "~/utils/applicant.utils"
+      "~/utils/applicant.utils.server"
     );
     studentAnalytics = await fetchStudentAnalyticsData(user.id);
   } else if (user.role === USER_ROLES.DEPARTMENT_ADMINISTRATOR) {
     const { fetchDepartmentAdminAnalyticsData } = await import(
-      "~/utils/deptadmin.utils"
+      "~/utils/deptadmin.utils.server"
     );
     departmentAdminAnalytics = await fetchDepartmentAdminAnalyticsData(user.id);
   }

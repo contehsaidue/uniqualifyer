@@ -5,7 +5,7 @@ import { UserRole } from '@prisma/client';
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { getSession, destroySession } from '@/utils/session.server';
-import { getUserBySession } from '@/services/auth.service';
+import { getUserBySession } from '~/services/auth.service.server';
 
 interface UserSession {
   id: string;

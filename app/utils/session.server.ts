@@ -1,4 +1,4 @@
-import { logoutUser } from "@/services/auth.service";
+import { logoutUser } from "~/services/auth.service.server";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { Session, SessionData } from "@remix-run/node";
 

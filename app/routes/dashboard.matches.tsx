@@ -8,7 +8,7 @@ import {
   Form,
 } from "@remix-run/react";
 import { getSession, destroySession } from "@/utils/session.server";
-import { getUserBySession } from "@/services/auth.service";
+import { getUserBySession } from "~/services/auth.service.server";
 import { UserRole } from "@prisma/client";
 import {
   createApplication,
