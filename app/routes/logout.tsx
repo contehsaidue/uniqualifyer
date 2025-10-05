@@ -11,7 +11,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await logoutUser(refreshToken);
   }
 
-  return redirect("login", {
+  return redirect("/login", {
     headers: {
       "Set-Cookie": await destroySession(session),
     },
