@@ -28,7 +28,7 @@ export default function ForgotPassword() {
       >
         {/* Back button */}
         <Link
-          to="/auth/login"
+          to="/login"
           className="absolute top-4 left-4 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />

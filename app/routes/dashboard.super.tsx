@@ -34,7 +34,6 @@ export default function SuperAdminDashboard({
 }: SuperAdminDashboardProps) {
   console.log("Analytics data:", analytics);
 
-  // Add proper error handling for undefined analytics
   if (!analytics) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -49,7 +48,6 @@ export default function SuperAdminDashboard({
     );
   }
 
-  // Extract analytics data from the nested structure
   const analyticsData = analytics;
 
   return (

@@ -43,21 +43,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              console.log('✅ Scripts loaded');
-              console.log('✅ Remix hydration should work now');
-              
-              // Test basic JavaScript
-              document.addEventListener('click', function(e) {
-                console.log('🎯 Click event working on:', e.target.tagName);
-              });
-              
-              // Force check hydration
-              if (typeof window !== 'undefined' && window.__remixContext) {
-                console.log('✅ Remix context found');
-              } else {
-                console.log('❌ Remix context missing');
-              }
-            `,
+      console.log('🔍 Debugging module loading...');
+      
+      // Test loading the problematic file
+      setTimeout(async () => {
+        try {
+          console.log('📦 Testing dashboard.index module...');
+          const module = await import('/assets/dashboard.index-aM_7-ti4.js');
+          console.log('✅ dashboard.index loaded successfully:', module);
+        } catch (error) {
+          console.error('❌ dashboard.index failed to load:', error);
+          console.log('🔍 Error details:', {
+            message: error.message,
+            stack: error.stack
+          });
+        }
+      }, 1000);
+    `,
           }}
         />
       </body>

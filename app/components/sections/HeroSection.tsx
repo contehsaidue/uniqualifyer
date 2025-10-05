@@ -112,8 +112,6 @@ export function HeroSection() {
   return (
     <section className="relative isolate px-6 lg:px-8 min-h-[90vh] flex items-center overflow-hidden">
       <BackgroundCarousel />
-
-      {/* Floating auth buttons */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -130,7 +128,7 @@ export function HeroSection() {
             Explorer
           </Link>
           <Link
-            to="/auth/login"
+            to="/login"
             className="flex items-center px-4 py-2 text-sm font-medium rounded-full hover:bg-white/20 transition-all text-gray-100 hover:text-white"
             prefetch="intent"
           >
@@ -138,7 +136,7 @@ export function HeroSection() {
             Sign in
           </Link>
           <Link
-            to="/auth/register"
+            to="/register"
             className="flex items-center px-4 py-2 text-sm font-medium rounded-full bg-white text-indigo-600 shadow-sm hover:bg-white/90 transition-all"
             prefetch="intent"
           >
