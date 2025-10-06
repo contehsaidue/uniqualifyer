@@ -61,13 +61,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const refreshToken = session.get("refreshToken");
 
   if (!session || !refreshToken) {
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   const user = await getUserBySession(refreshToken);
 
   if (!user) {
-    throw redirect("/auth/login", {
+    throw redirect("/login", {
       headers: {
         "Set-Cookie": await destroySession(session),
       },

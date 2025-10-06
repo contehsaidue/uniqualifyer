@@ -76,13 +76,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (!user) {
     if (refreshToken) {
-      throw redirect("/auth/login", {
+      throw redirect("/login", {
         headers: {
           "Set-Cookie": await destroySession(session),
         },
       });
     }
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   if (
@@ -125,7 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const user = await getUserBySession(refreshToken);
 
   if (!user) {
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   const formData = await request.formData();

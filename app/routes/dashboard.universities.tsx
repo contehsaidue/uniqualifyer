@@ -76,13 +76,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (!user) {
     if (refreshToken) {
-      throw redirect("/auth/login", {
+      throw redirect("/login", {
         headers: {
           "Set-Cookie": await destroySession(session),
         },
       });
     }
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   if (user.role !== UserRole.SUPER_ADMIN) {

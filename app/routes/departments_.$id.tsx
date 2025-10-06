@@ -1,16 +1,7 @@
 // app/routes/departments.$id.tsx
 import { useLoaderData, Link } from "@remix-run/react";
 import { LoaderFunctionArgs, json } from "@remix-run/node";
-import {
-  ArrowLeft,
-  Building2,
-  BookOpen,
-  Users,
-  Mail,
-  Phone,
-  GraduationCap,
-  FileText,
-} from "lucide-react";
+import { ArrowLeft, Building2, BookOpen, FileText } from "lucide-react";
 import { getDepartmentById } from "@/utils/models/department.server";
 
 export async function loader({ params }: LoaderFunctionArgs) {

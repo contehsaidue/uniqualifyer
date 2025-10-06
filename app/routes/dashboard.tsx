@@ -13,13 +13,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserBySession(refreshToken);
   if (!user) {
     if (refreshToken) {
-      throw redirect("/auth/login", {
+      throw redirect("/login", {
         headers: {
           "Set-Cookie": await destroySession(session),
         },
       });
     }
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   return { user };

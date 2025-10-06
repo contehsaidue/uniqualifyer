@@ -50,13 +50,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!user) {
     console.log("No user found, redirecting to login");
     if (refreshToken) {
-      throw redirect("/auth/login", {
+      throw redirect("/login", {
         headers: {
           "Set-Cookie": await destroySession(session),
         },
       });
     }
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   // Only students can access this page
