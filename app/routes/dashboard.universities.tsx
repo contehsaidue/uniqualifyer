@@ -341,6 +341,12 @@ export default function UniversityManagement() {
     },
   ];
 
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex flex-wrap mb-6">
@@ -367,131 +373,139 @@ export default function UniversityManagement() {
       <GenericTable data={universities} columns={columns} />
 
       {/* Create/Edit Modal */}
-      {isModalOpen && currentUniversity && (
-        <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">
-                {currentUniversity.id
-                  ? "Edit University"
-                  : "Create New University"}
-              </h2>
+      {isClient && (
+        <>
+          {isModalOpen && currentUniversity && (
+            <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold mb-4">
+                    {currentUniversity.id
+                      ? "Edit University"
+                      : "Create New University"}
+                  </h2>
 
-              <Form method="post" onSubmit={handleFormSubmit}>
-                <input
-                  type="hidden"
-                  name="_action"
-                  value={currentUniversity.id ? "update" : "create"}
-                />
-                {currentUniversity.id && (
-                  <input type="hidden" name="id" value={currentUniversity.id} />
-                )}
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      University Name
-                    </label>
+                  <Form method="post" onSubmit={handleFormSubmit}>
                     <input
-                      type="text"
-                      name="name"
-                      defaultValue={currentUniversity.name}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      type="hidden"
+                      name="_action"
+                      value={currentUniversity.id ? "update" : "create"}
                     />
-                  </div>
+                    {currentUniversity.id && (
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={currentUniversity.id}
+                      />
+                    )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      URL Slug
-                    </label>
-                    <input
-                      type="text"
-                      name="slug"
-                      defaultValue={currentUniversity.slug}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      pattern="[a-z0-9-]+"
-                      title="Only lowercase letters, numbers, and hyphens allowed"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Used in URLs (e.g., "university-name")
-                    </p>
-                  </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          University Name
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          defaultValue={currentUniversity.name}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      name="location"
-                      defaultValue={currentUniversity.location}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., City, Country"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          URL Slug
+                        </label>
+                        <input
+                          type="text"
+                          name="slug"
+                          defaultValue={currentUniversity.slug}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          pattern="[a-z0-9-]+"
+                          title="Only lowercase letters, numbers, and hyphens allowed"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Used in URLs (e.g., "university-name")
+                        </p>
+                      </div>
 
-                  <div className="flex justify-end space-x-3 pt-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          name="location"
+                          defaultValue={currentUniversity.location}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="e.g., City, Country"
+                        />
+                      </div>
+
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={closeModal}
+                          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {currentUniversity.id ? "Update" : "Create"}
+                        </button>
+                      </div>
+                    </div>
+                  </Form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {isDeleteModalOpen && (
+            <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold mb-4">Confirm Deletion</h2>
+                  <p className="mb-6">
+                    Are you sure you want to delete this university? This action
+                    cannot be undone.
+                  </p>
+
+                  <div className="flex justify-end space-x-3">
                     <button
                       type="button"
-                      onClick={closeModal}
+                      onClick={closeDeleteModal}
                       className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       Cancel
                     </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {currentUniversity.id ? "Update" : "Create"}
-                    </button>
+                    <Form method="post" onSubmit={handleDeleteSubmit}>
+                      <input type="hidden" name="_action" value="delete" />
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={universityToDelete || ""}
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        Delete
+                      </button>
+                    </Form>
                   </div>
                 </div>
-              </Form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-gray-800/90 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Confirm Deletion</h2>
-              <p className="mb-6">
-                Are you sure you want to delete this university? This action
-                cannot be undone.
-              </p>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={closeDeleteModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <Form method="post" onSubmit={handleDeleteSubmit}>
-                  <input type="hidden" name="_action" value="delete" />
-                  <input
-                    type="hidden"
-                    name="id"
-                    value={universityToDelete || ""}
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    Delete
-                  </button>
-                </Form>
               </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );
