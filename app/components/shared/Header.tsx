@@ -1,12 +1,4 @@
-import {
-  GraduationCap,
-  Search,
-  Bell,
-  ChevronDown,
-  User,
-  Menu,
-  X,
-} from "lucide-react";
+import { GraduationCap, Search, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, Form } from "@remix-run/react";
 
@@ -59,7 +51,7 @@ export default function Header({ user }: HeaderProps) {
 
           <div className="flex items-center">
             <Link
-              to="/profile"
+              to="/dashboard/profile"
               className="flex items-center"
               aria-label="User profile"
             >

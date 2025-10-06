@@ -27,13 +27,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
   console.log("Signedin user details...", user);
   if (!user) {
     if (refreshToken) {
-      throw redirect("/auth/login", {
+      throw redirect("/login", {
         headers: {
           "Set-Cookie": await destroySession(session),
         },
       });
     }
-    throw redirect("/auth/login");
+    throw redirect("/login");
   }
 
   let analytics = null;
