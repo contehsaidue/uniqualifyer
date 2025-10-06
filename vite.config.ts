@@ -1,19 +1,25 @@
 import { defineConfig } from "vite";
 import { vitePlugin as remix } from "@remix-run/dev";
-import path from 'path'
+import path from 'path';
 
 export default defineConfig({
   optimizeDeps: {
-    include: ['jsonwebtoken']
+    include: ['jsonwebtoken'],
+    exclude: ['.prisma/client'] // Add this
   },
   plugins: [remix()],
-    resolve: {
-         alias: {
+  resolve: {
+    alias: {
       '~': path.resolve(__dirname, './app'),
       '@': path.resolve(__dirname, './app')
     },
   },
   css: {
     postcss: './postcss.config.mjs'
+  },
+  build: {
+    rollupOptions: {
+      external: ['.prisma/client'] // Add this
+    }
   }
 });
