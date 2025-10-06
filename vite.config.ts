@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   optimizeDeps: {
     include: ['jsonwebtoken'],
-    exclude: ['.prisma/client'] // Add this
+    exclude: ['@prisma/client','.prisma/client'] // Add this
   },
   plugins: [remix()],
   resolve: {
@@ -19,7 +19,9 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['.prisma/client'] // Add this
+     external: ['@prisma/client', '.prisma/client'], // Externalize Prisma
     }
+  }, ssr: {
+    noExternal: ['@prisma/client'] // Ensure Prisma is not bundled for SSR
   }
 });
