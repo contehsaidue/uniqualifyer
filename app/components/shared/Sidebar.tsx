@@ -12,10 +12,7 @@ import {
   LogOut,
   BookOpenTextIcon,
   GraduationCap,
-  X,
-  FileQuestionMarkIcon,
   LucideFileQuestionMark,
-  BookAlertIcon,
 } from "lucide-react";
 import { Link, useLocation, Form } from "@remix-run/react";
 import { useState } from "react";
@@ -147,35 +144,34 @@ export default function Sidebar({ user }: SidebarProps) {
     <div className="flex flex-col h-full w-full md:w-64 flex-shrink-0">
       <nav className="flex-1 space-y-1 p-2">
         <div className="hidden md:flex items-center justify-center mb-4">
-          <Link
-            to="/dashboard/index"
+          <a
+            href="/dashboard/index"
             className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             aria-label="Go to homepage"
           >
             <GraduationCap className="h-8 w-8 text-indigo-600" />
             <h1 className="text-xl font-bold text-gray-900">UniQualifyer</h1>
-          </Link>
+          </a>
         </div>
         {menuItems
           .filter((item) => item.roles.includes(user.role))
           .map((item) => (
-            <Link
+            <a
               key={item.id}
-              to={item.to}
+              href={item.to}
               className={[
                 "flex items-center w-full px-4 py-3 rounded-lg transition-colors duration-200",
                 isActive(item.to)
                   ? "bg-indigo-50 text-indigo-700 font-medium"
                   : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
               ].join(" ")}
-              prefetch="intent"
             >
               <span className="mr-3">{item.icon}</span>
               {item.label}
               {isActive(item.to) && (
                 <span className="ml-auto h-2 w-2 rounded-full bg-indigo-600" />
               )}
-            </Link>
+            </a>
           ))}
       </nav>
 
@@ -232,13 +228,13 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
         {/* Profile Actions */}
         <div className="space-y-3 mt-3 hidden md:flex flex-col">
-          <Link
-            to="/dashboard/profile"
+          <a
+            href="/dashboard/profile"
             className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 w-full"
           >
             <User className="h-4 w-4" />
             My Profile
-          </Link>
+          </a>
 
           <Form
             method="post"
