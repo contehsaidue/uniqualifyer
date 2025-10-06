@@ -1,6 +1,6 @@
 import { GraduationCap, Search, Menu } from "lucide-react";
 import { useState } from "react";
-import { Link, Form } from "@remix-run/react";
+import { Form } from "@remix-run/react";
 
 type HeaderProps = {
   user: any;
@@ -41,17 +41,17 @@ export default function Header({ user }: HeaderProps) {
           >
             <Menu className="h-6 w-6" />
           </button>
-          <Link
-            to="/dashboard/index"
+          <a
+            href="/dashboard/index"
             className="flex items-center hover:opacity-80 transition-opacity mx-auto"
             aria-label="Go to homepage"
           >
             <GraduationCap className="h-8 w-8 text-indigo-600" />
-          </Link>
+          </a>
 
           <div className="flex items-center">
-            <Link
-              to="/dashboard/profile"
+            <a
+              href="/dashboard/profile"
               className="flex items-center"
               aria-label="User profile"
             >
@@ -60,7 +60,7 @@ export default function Header({ user }: HeaderProps) {
                   {user?.name?.charAt(0) || "U"}
                 </span>
               </div>
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -82,20 +82,20 @@ export default function Header({ user }: HeaderProps) {
               </div>
             </div>
             <nav className="space-y-2">
-              <Link
-                to="/profile"
+              <a
+                href="/dashboard/profile"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Profile
-              </Link>
-              <Link
-                to="/settings"
+              </a>
+              <a
+                href="/dashboard/settings"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Settings
-              </Link>
+              </a>
               <Form
                 method="post"
                 action="/logout"
