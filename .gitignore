@@ -1,7 +1,13 @@
 node_modules
 
+# Prisma
+.prisma/
+node_modules/.prisma/
+
 /.cache
 /build
 .env
 
 /generated/prisma
+node_modules/.prisma/
+.prisma/
